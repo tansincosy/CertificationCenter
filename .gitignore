@@ -1,7 +1,8 @@
 # compiled output
 /dist
 /node_modules
-
+/tmp
+/app_data
 # Logs
 logs
 *.log
