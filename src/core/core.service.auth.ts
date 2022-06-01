@@ -11,7 +11,10 @@ import {
   User,
 } from 'oauth2-server';
 import { PrismaService } from '@/common/database/prisma.service';
-import { md5, secretMask, toJSON, toObject } from '@/util/help.util';
+import { decrypt, md5, secretMask, toJSON, toObject } from '@/util/help.util';
+import { TOKEN, USER } from '@/constant/token.constant';
+import { Injectable } from '@nestjs/common';
+@Injectable()
 export class CoreModelService
   implements PasswordModel, RefreshTokenModel, AuthorizationCodeModel
 {
@@ -50,6 +53,7 @@ export class CoreModelService
     client: Client,
     user: User,
   ): Promise<Falsey | AuthorizationCode> {
+    this.LOG.debug('[saveAuthorizationCode] ');
     return false;
   }
 
@@ -93,10 +97,34 @@ export class CoreModelService
       username,
       secretMask(password),
     );
+    const user = await this.prismaService.user.findFirst({
+      where: {
+        username,
+      },
+    });
+
+    if (user) {
+      this.LOG.warn('[getUser] user is not found!');
+      return false;
+    }
+    if (user.enable !== USER.ENABLE) {
+      this.LOG.warn('[getUser] user is disabled!');
+      return false;
+    }
+    if (user.isLocked === USER.LOCKED) {
+      this.LOG.warn('[getUser] user is locked!');
+      return false;
+    }
+    const cryptoConfigKey = process.env.TOKEN_SECRET || TOKEN.SECRET;
+    const decryptPassword = decrypt(cryptoConfigKey, user.password);
+    if (user.password !== decryptPassword) {
+      this.LOG.warn('[getUser] password is not correct!');
+      return false;
+    }
 
     return {
-      id: '',
-      username: '',
+      id: user.id,
+      username: user.username,
     };
   }
 
@@ -161,6 +189,8 @@ export class CoreModelService
       },
     });
     this.LOG.debug('[saveToken] process save refresh token');
+
+    //NOTE: 刷新token? 什么时候添加此处表中？
     await this.prismaService.oAuthRefreshToken.create({
       data: {
         tokenId: token.refreshToken,

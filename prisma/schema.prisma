@@ -9,23 +9,26 @@ datasource db {
 
 // oauth2 table list
 model OAuthClientDetails {
-  id                    String   @id @default(uuid()) @map("client_id")
-  resourceIds           String   @default("") @map("resource_ids")
-  clientSecret          String   @default("") @map("client_secret")
+  id                    String @id @default(uuid()) @map("client_id")
+  resourceIds           String @default("") @map("resource_ids")
+  clientSecret          String @default("") @map("client_secret")
   //客户端申请的权限范围,可选值包括read,write,trust;若有多个权限范围用逗号(,)分隔
-  scope                 String   @default("") @map("scope")
-  authorizedGrantTypes  String   @default("") @map("authorized_grant_types")
-  webServerRedirectUri  String   @default("") @map("web_server_redirect_uri")
+  scope                 String @default("") @map("scope")
+  authorizedGrantTypes  String @default("") @map("authorized_grant_types")
+  webServerRedirectUri  String @default("") @map("web_server_redirect_uri")
   //客户端所拥有的Spring Security的权限值,可选, 若有多个权限值,用逗号(,)分隔
-  authorities           String   @default("") @map("authorities")
-  accessTokenValidity   Int      @default(1800) @map("access_token_validity")
-  refreshTokenValidity  Int      @default(604800) @map("refresh_token_validity")
+  authorities           String @default("") @map("authorities")
+  accessTokenValidity   Int    @default(1800) @map("access_token_validity")
+  refreshTokenValidity  Int    @default(604800) @map("refresh_token_validity")
   //这是一个预留的字段,在Oauth的流程中没有实际的使用,可选,但若设置值,必须是JSON格式的数据
-  additionalInformation String   @default("") @map("additional_information")
-  //设置用户是否自动批准授予权限操作, 默认值为 ‘false’, 可选值包括 ‘true’,‘false’, ‘read’,‘write’.
-  autoApprove           String   @default("") @map("auto_approve")
-  createdAt             DateTime @default(now()) @map("created_at")
-  updatedAt             DateTime @default(now()) @map("updated_at")
+  additionalInformation String @default("") @map("additional_information")
+
+  //设置用户是否自动Approval操作, 默认值为 'false', 可选值包括 'true','false', 'read','write'.
+  //该字段只适用于grant_type="authorization_code"的情况,当用户登录成功后,若该值为'true'或支持的scope值,则会跳过用户Approve的页面, 直接授权.
+  //该字段与 trusted 有类似的功能, 是 spring-security-oauth2 的 2.0 版本后添加的新属性.
+  autoApprove String   @default("") @map("auto_approve")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @default(now()) @map("updated_at")
 
   oauthAccessToken OAuthAccessToken[]
   @@map("oauth_client_details")

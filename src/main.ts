@@ -8,5 +8,8 @@ async function bootstrap() {
     logger: new Log(getConfig()),
   });
   await app.listen(process.env.APP_PORT || 3000);
+  new Log(getConfig())
+    .getLogger('bootstrap')
+    .info(`Server running on port ${process.env.APP_PORT || 3000}`);
 }
 bootstrap();
