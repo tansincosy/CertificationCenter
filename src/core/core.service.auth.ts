@@ -53,7 +53,19 @@ export class CoreModelService
     client: Client,
     user: User,
   ): Promise<Falsey | AuthorizationCode> {
-    this.LOG.debug('[saveAuthorizationCode] ');
+    this.LOG.debug('[saveAuthorizationCode] init');
+    this.prismaService.oAuthApprovals.create({
+      data: {
+        expiresAt: code.expiresAt,
+        clientId: client.id,
+        userId: user.id,
+      },
+    });
+    this.prismaService.oAuthCode.create({
+      data: {
+        code: code.authorizationCode,
+      },
+    });
     return false;
   }
 
