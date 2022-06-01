@@ -9,8 +9,7 @@ datasource db {
 
 // oauth2 table list
 model OAuthClientDetails {
-  id                    String   @id @default(cuid())
-  cliendId              String   @default(uuid()) @map("client_id")
+  id                    String   @id @default(uuid()) @map("client_id")
   resourceIds           String   @default("") @map("resource_ids")
   clientSecret          String   @default("") @map("client_secret")
   //客户端申请的权限范围,可选值包括read,write,trust;若有多个权限范围用逗号(,)分隔
@@ -28,6 +27,7 @@ model OAuthClientDetails {
   createdAt             DateTime @default(now()) @map("created_at")
   updatedAt             DateTime @default(now()) @map("updated_at")
 
+  oauthAccessToken OAuthAccessToken[]
   @@map("oauth_client_details")
 }
 
@@ -45,10 +45,8 @@ model OAuthClientToken {
 model OAuthAccessToken {
   id String @id @default(cuid())
 
-  //认证授权客户端ID
-  clientId String @default("") @map("client_id")
   //Token标识：通过MD5加密access_token的值
-  tokenId  String @default("") @map("token_id")
+  tokenId  String @unique @default("") @map("token_id")
   //OAuth2AccessToken.java对象序列化内容
   token    String @default("") @map("token")
   // 用户名，若客户端没有用户名则该值等于client_id
@@ -66,13 +64,17 @@ model OAuthAccessToken {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @default(now()) @map("updated_at")
 
+  OAuthClientDetails OAuthClientDetails? @relation(fields: [clientId], references: [id])
+
+  //认证授权客户端ID
+  clientId String @default("") @map("client_id")
   @@map("oauth_access_token")
 }
 
 model OAuthRefreshToken {
   id             String @id @default(cuid())
   //RefreshToken标识：通过MD5加密refresh_token的值
-  tokenId        String @default("") @map("token_id")
+  tokenId        String @unique @default("") @map("token_id")
   //OAuth2RefreshToken.java对象序列化内容
   token          String @default("") @map("token")
   //OAuth2Authentication.java对象序列化内容
@@ -89,7 +91,7 @@ model OAuthCode {
   //AuthorizationRequestHolder.java对象序列化内容
   authentication String @default("") @map("authentication")
   //存储服务端系统生成的code的值(未加密)
-  code           String @default("") @map("code")
+  code           String @unique @default("") @map("code")
 
   @@map("oauth_code")
 }
@@ -126,4 +128,18 @@ model clientDetails {
   updatedAt             DateTime @default(now()) @map("updated_at")
 
   @@map("oauth_custom_client_details")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  username  String   @unique @default("") @map("username")
+  password  String   @default("") @map("password")
+  enable    Int      @default(1) @map("enable")
+  updatedAt DateTime @default(now()) @map("updated_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  isLocked  Int?     @default(1) @map("is_locked")
+  email     String?  @unique @default("")
+
+
+  @@map("oauth_user")
 }
