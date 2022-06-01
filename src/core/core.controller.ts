@@ -7,7 +7,7 @@ export class CoreController {
 
   @Post('token')
   token(@Req() request: Request, @Res() response: Response) {
-    return this.coreService.token(request, response);
+    return this.coreService.token(new Request(request), new Response(response));
   }
 
   @Post('authorize')
