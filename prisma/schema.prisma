@@ -49,20 +49,16 @@ model OAuthAccessToken {
   id String @id @default(cuid())
 
   //Token标识：通过MD5加密access_token的值
-  tokenId  String @unique @default("") @map("token_id")
+  tokenId          String @map("token_id") @db.LongText
   //OAuth2AccessToken.java对象序列化内容
-  token    String @default("") @map("token")
+  token            String @map("token") @db.LongText
   // 用户名，若客户端没有用户名则该值等于client_id
-  username String @default("")
-
-  //根据当前的username、client_id与scope通过MD5加密生成该字段的值
-  authenticationId String @default("") @map("authentication_id")
-
-  //OAuth2Authentication.java对象序列化内容
-  authentication String @default("") @map("authentication")
+  username         String @default("")
+  authenticationId String @map("authentication_id") @db.LongText //根据当前的username、client_id与scope通过MD5加密生成该字段的值
+  authentication   String @map("authentication") @db.LongText //OAuth2Authentication.java对象序列化内容
 
   //RefreshToken标识：通过MD5加密refresh_token的值
-  refreshToken String @default("") @map("refresh_token")
+  refreshToken String @map("refresh_token") @db.LongText
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @default(now()) @map("updated_at")
@@ -77,11 +73,11 @@ model OAuthAccessToken {
 model OAuthRefreshToken {
   id             String @id @default(cuid())
   //RefreshToken标识：通过MD5加密refresh_token的值
-  tokenId        String @unique @default("") @map("token_id")
+  tokenId        String @map("token_id") @db.LongText
   //OAuth2RefreshToken.java对象序列化内容
-  token          String @default("") @map("token")
+  token          String @map("token") @db.LongText
   //OAuth2Authentication.java对象序列化内容
-  authentication String @default("") @map("authentication")
+  authentication String @map("authentication") @db.LongText
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @default(now()) @map("updated_at")

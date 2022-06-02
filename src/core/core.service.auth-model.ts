@@ -15,7 +15,7 @@ import { decrypt, md5, secretMask, toJSON, toObject } from '@/util/help.util';
 import { TOKEN, USER } from '@/constant/token.constant';
 import { Injectable } from '@nestjs/common';
 @Injectable()
-export class CoreModelService
+export class CoreAuthModelService
   implements PasswordModel, RefreshTokenModel, AuthorizationCodeModel
 {
   private LOG: Logger;
@@ -23,7 +23,7 @@ export class CoreModelService
     private readonly logService: LoggerService,
     private readonly prismaService: PrismaService,
   ) {
-    this.LOG = this.logService.getLogger(CoreModelService.name);
+    this.LOG = this.logService.getLogger(CoreAuthModelService.name);
   }
 
   async getAuthorizationCode(
@@ -86,24 +86,25 @@ export class CoreModelService
       return false;
     }
 
-    const delAccessToken = this.prismaService.oAuthAccessToken.delete({
-      where: {
-        tokenId: token.accessToken,
-      },
-    });
+    // const delAccessToken = this.prismaService.oAuthAccessToken.delete({
+    //   where: {
+    //     tokenId: token.accessToken,
+    //   },
+    // });
 
-    const delRefreshToken = this.prismaService.oAuthRefreshToken.delete({
-      where: {
-        tokenId: token.refreshToken,
-      },
-    });
+    // const delRefreshToken = this.prismaService.oAuthRefreshToken.delete({
+    //   where: {
+    //     tokenId: token.refreshToken,
+    //   },
+    // });
 
-    await this.prismaService.$transaction([delAccessToken, delRefreshToken]);
+    // await this.prismaService.$transaction([delAccessToken, delRefreshToken]);
     this.LOG.debug('[revokeToken] process end');
     return true;
   }
 
   async getUser(username: string, password: string): Promise<User | Falsey> {
+    //NOTE: 是否托管用户信息？
     this.LOG.debug(
       '[getUser] username = %s, password = %s',
       username,
@@ -115,7 +116,7 @@ export class CoreModelService
       },
     });
 
-    if (user) {
+    if (!user) {
       this.LOG.warn('[getUser] user is not found!');
       return false;
     }
@@ -127,12 +128,12 @@ export class CoreModelService
       this.LOG.warn('[getUser] user is locked!');
       return false;
     }
-    const cryptoConfigKey = process.env.TOKEN_SECRET || TOKEN.SECRET;
-    const decryptPassword = decrypt(cryptoConfigKey, user.password);
-    if (user.password !== decryptPassword) {
-      this.LOG.warn('[getUser] password is not correct!');
-      return false;
-    }
+    // const cryptoConfigKey = process.env.TOKEN_SECRET || TOKEN.SECRET;
+    // const decryptPassword = decrypt(cryptoConfigKey, user.password);
+    // if (user.password !== decryptPassword) {
+    //   this.LOG.warn('[getUser] password is not correct!');
+    //   return false;
+    // }
 
     return {
       id: user.id,
@@ -187,6 +188,7 @@ export class CoreModelService
       data: {
         username: user.username,
         clientId: client.id,
+        authentication: '',
         tokenId: token.accessToken,
         refreshToken: token.refreshToken,
         token: toJSON(token),
@@ -200,17 +202,16 @@ export class CoreModelService
         id: true,
       },
     });
-    this.LOG.debug('[saveToken] process save refresh token');
 
     //NOTE: 刷新token? 什么时候添加此处表中？
-    await this.prismaService.oAuthRefreshToken.create({
-      data: {
-        tokenId: token.refreshToken,
-        token: toJSON(token),
-      },
-    });
+    // await this.prismaService.oAuthRefreshToken.create({
+    //   data: {
+    //     tokenId: token.refreshToken,
+    //     authentication: '',
+    //     token: toJSON(token),
+    //   },
+    // });
 
-    this.LOG.debug('[saveToken] process end');
     if (!id) {
       this.LOG.warn('[saveToken] save token failed!');
       return false;
