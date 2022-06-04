@@ -86,17 +86,25 @@ export class CoreAuthModelService
       return false;
     }
 
-    // const delAccessToken = this.prismaService.oAuthAccessToken.delete({
-    //   where: {
-    //     tokenId: token.accessToken,
-    //   },
-    // });
+    this.LOG.debug('[revokeToken] token = %s', token);
+    const { accessToken, refreshToken } = token;
 
-    // const delRefreshToken = this.prismaService.oAuthRefreshToken.delete({
-    //   where: {
-    //     tokenId: token.refreshToken,
-    //   },
-    // });
+    if (accessToken) {
+      await this.prismaService.oAuthToken.deleteMany({
+        where: {
+          tokenId: accessToken,
+        },
+      });
+      this.LOG.info('revokeToken accessToken success');
+    }
+    if (refreshToken) {
+      await this.prismaService.oAuthToken.deleteMany({
+        where: {
+          refreshToken: refreshToken,
+        },
+      });
+      this.LOG.info('revokeToken refreshToken success');
+    }
 
     // await this.prismaService.$transaction([delAccessToken, delRefreshToken]);
     this.LOG.debug('[revokeToken] process end');
@@ -116,6 +124,13 @@ export class CoreAuthModelService
       },
     });
 
+    if (process.env.DEBUG) {
+      return {
+        id: '1',
+        username: 'username',
+      };
+    }
+
     if (!user) {
       this.LOG.warn('[getUser] user is not found!');
       return false;
@@ -128,12 +143,12 @@ export class CoreAuthModelService
       this.LOG.warn('[getUser] user is locked!');
       return false;
     }
-    // const cryptoConfigKey = process.env.TOKEN_SECRET || TOKEN.SECRET;
-    // const decryptPassword = decrypt(cryptoConfigKey, user.password);
-    // if (user.password !== decryptPassword) {
-    //   this.LOG.warn('[getUser] password is not correct!');
-    //   return false;
-    // }
+    const cryptoConfigKey = process.env.TOKEN_SECRET || TOKEN.SECRET;
+    const decryptPassword = decrypt(cryptoConfigKey, user.password);
+    if (!process.env.DEBUG && user.password !== decryptPassword) {
+      this.LOG.warn('[getUser] password is not correct!');
+      return false;
+    }
 
     return {
       id: user.id,
@@ -178,19 +193,39 @@ export class CoreAuthModelService
       refreshTokenLifetime: client.refreshTokenValidity || 0,
     };
   }
+
+  /**
+   * 保存token流程
+   *
+   * @param token
+   * @param client
+   * @param user
+   * @returns
+   */
   async saveToken(
     token: Token,
     client: Client,
     user: User,
   ): Promise<Falsey | Token> {
     this.LOG.debug('[saveToken] process begin');
-    const { id } = await this.prismaService.oAuthAccessToken.create({
+    //获取grants，判断是够是够需要refresh_token
+    const grants = client.grants;
+    let isNeedRefreshToken = false;
+    this.LOG.debug('grants', grants);
+    if (grants.includes('refresh_token')) {
+      this.LOG.info('[saveToken] current client grants contain refresh_token');
+      isNeedRefreshToken = true;
+    } else {
+      delete token.refreshToken;
+    }
+
+    const { id } = await this.prismaService.oAuthToken.create({
       data: {
         username: user.username,
         clientId: client.id,
         authentication: '',
         tokenId: token.accessToken,
-        refreshToken: token.refreshToken,
+        refreshToken: isNeedRefreshToken ? token.refreshToken : '',
         token: toJSON(token),
         //根据当前的username、client_id与scope通过MD5加密生成该字段的值
         authenticationId: md5(
@@ -203,15 +238,7 @@ export class CoreAuthModelService
       },
     });
 
-    //NOTE: 刷新token? 什么时候添加此处表中？
-    // await this.prismaService.oAuthRefreshToken.create({
-    //   data: {
-    //     tokenId: token.refreshToken,
-    //     authentication: '',
-    //     token: toJSON(token),
-    //   },
-    // });
-
+    this.LOG.debug('[saveToken] process success');
     if (!id) {
       this.LOG.warn('[saveToken] save token failed!');
       return false;
@@ -225,17 +252,44 @@ export class CoreAuthModelService
 
   async getRefreshToken(refreshToken: string): Promise<Falsey | RefreshToken> {
     this.LOG.debug('[getRefreshToken] process begin');
-    const refreshTokenObj =
-      await this.prismaService.oAuthRefreshToken.findFirst({
-        where: {
-          tokenId: refreshToken,
+    const tokenDB = await this.prismaService.oAuthToken.findFirst({
+      where: {
+        refreshToken,
+      },
+      select: {
+        refreshToken: true,
+        username: true,
+        token: true,
+        OAuthClientDetails: {
+          select: {
+            id: true,
+            clientSecret: true,
+            authorizedGrantTypes: true,
+          },
         },
-      });
-
-    const tokenObj = toObject<RefreshToken>(refreshTokenObj.token);
+      },
+    });
+    if (!tokenDB) {
+      this.LOG.warn('[getRefreshToken] refreshToken is not found!');
+      return false;
+    }
+    this.LOG.debug(
+      '[getRefreshToken] process success, refreshTokenObj = %s',
+      tokenDB,
+    );
+    const tokenObj = toObject<RefreshToken>(tokenDB.token);
     return {
-      ...tokenObj,
+      refreshToken: tokenDB.refreshToken,
       refreshTokenExpiresAt: new Date(tokenObj.refreshTokenExpiresAt),
+      scope: '',
+      client: {
+        id: tokenDB.OAuthClientDetails.id,
+        clientSecret: tokenDB.OAuthClientDetails.clientSecret,
+        grants: tokenDB.OAuthClientDetails.authorizedGrantTypes,
+      },
+      user: {
+        username: tokenDB.username,
+      },
     };
   }
 
@@ -244,23 +298,39 @@ export class CoreAuthModelService
       '[getAccessToken] accessToken = %s',
       secretMask(accessToken),
     );
-    const token = await this.prismaService.oAuthAccessToken.findFirst({
+    const token = await this.prismaService.oAuthToken.findFirst({
       where: {
         tokenId: accessToken,
       },
+      select: {
+        username: true,
+        token: true,
+        OAuthClientDetails: {
+          select: {
+            id: true,
+            clientSecret: true,
+            authorizedGrantTypes: true,
+          },
+        },
+      },
     });
-
     if (!token) {
       this.LOG.warn('[getAccessToken] token is not found!');
       return false;
     }
-
     const tokenObj = toObject<Token>(token.token);
-
+    this.LOG.debug('tokenObj = %s ,token = %s', tokenObj, token);
     return {
-      ...tokenObj,
-      accessToken,
+      accessToken: tokenObj.accessToken,
       accessTokenExpiresAt: new Date(tokenObj.accessTokenExpiresAt),
+      user: {
+        username: token.username,
+      },
+      client: {
+        id: tokenObj.clientId,
+        clientSecret: token.OAuthClientDetails.clientSecret,
+        grants: token.OAuthClientDetails.authorizedGrantTypes,
+      },
       scope: tokenObj.scope,
     };
   }

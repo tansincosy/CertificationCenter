@@ -9,7 +9,7 @@ datasource db {
 
 // oauth2 table list
 model OAuthClientDetails {
-  id                    String @id @default(uuid()) @map("client_id")
+  id                    String @id @default(cuid()) @map("client_id")
   resourceIds           String @default("") @map("resource_ids")
   clientSecret          String @default("") @map("client_secret")
   //客户端申请的权限范围,可选值包括read,write,trust;若有多个权限范围用逗号(,)分隔
@@ -30,7 +30,7 @@ model OAuthClientDetails {
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @default(now()) @map("updated_at")
 
-  oauthAccessToken OAuthAccessToken[]
+  OAuthToken OAuthToken[]
   @@map("oauth_client_details")
 }
 
@@ -45,7 +45,7 @@ model OAuthClientToken {
   @@map("oauth_client_token")
 }
 
-model OAuthAccessToken {
+model OAuthToken {
   id String @id @default(cuid())
 
   //Token标识：通过MD5加密access_token的值
@@ -67,22 +67,7 @@ model OAuthAccessToken {
 
   //认证授权客户端ID
   clientId String @default("") @map("client_id")
-  @@map("oauth_access_token")
-}
-
-model OAuthRefreshToken {
-  id             String @id @default(cuid())
-  //RefreshToken标识：通过MD5加密refresh_token的值
-  tokenId        String @map("token_id") @db.LongText
-  //OAuth2RefreshToken.java对象序列化内容
-  token          String @map("token") @db.LongText
-  //OAuth2Authentication.java对象序列化内容
-  authentication String @map("authentication") @db.LongText
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @default(now()) @map("updated_at")
-
-  @@map("oauth_refresh_token")
+  @@map("oauth_token")
 }
 
 model OAuthCode {
