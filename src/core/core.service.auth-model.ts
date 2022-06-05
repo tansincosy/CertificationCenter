@@ -33,16 +33,55 @@ export class CoreAuthModelService
       '[getAuthorizationCode] authorizationCode = %s',
       authorizationCode,
     );
-    const authorizationObj = await this.prismaService.oAuthCode.findFirst({
+    const authorizationObj = await this.prismaService.oAuthApprovals.findFirst({
       where: {
         code: authorizationCode,
       },
+      select: {
+        code: true,
+        expiresAt: true,
+        scope: true,
+        userId: true,
+        OAuthClientDetails: {
+          select: {
+            clientSecret: true,
+            webServerRedirectUri: true,
+            id: true,
+            authorizedGrantTypes: true,
+            accessTokenValidity: true,
+            refreshTokenValidity: true,
+          },
+        },
+      },
     });
     if (!authorizationObj || !authorizationCode) {
+      this.LOG.warn('[getAuthorizationCode] authorizationObj is null');
       return false;
     }
 
-    return null;
+    this.LOG.debug(
+      '[getAuthorizationCode] authorizationObj = %s',
+      authorizationObj,
+    );
+
+    return {
+      authorizationCode: authorizationObj.code,
+      expiresAt: new Date(authorizationObj.expiresAt),
+      redirectUri: authorizationObj.OAuthClientDetails.webServerRedirectUri,
+      scope: authorizationObj.scope,
+      client: {
+        id: authorizationObj.OAuthClientDetails.id,
+        redirectUris: authorizationObj.OAuthClientDetails.webServerRedirectUri,
+        grants: authorizationObj.OAuthClientDetails.authorizedGrantTypes,
+        accessTokenLifetime:
+          authorizationObj.OAuthClientDetails.accessTokenValidity,
+        refreshTokenLifetime:
+          authorizationObj.OAuthClientDetails.refreshTokenValidity,
+      },
+      user: {
+        id: authorizationObj.userId,
+      },
+    };
   }
 
   async saveAuthorizationCode(
@@ -54,29 +93,62 @@ export class CoreAuthModelService
     user: User,
   ): Promise<Falsey | AuthorizationCode> {
     this.LOG.debug('[saveAuthorizationCode] init');
-    this.prismaService.oAuthApprovals.create({
+    if (!code.authorizationCode) {
+      this.LOG.warn('[saveAuthorizationCode] code.authorizationCode is null');
+      return false;
+    }
+    const { id } = await this.prismaService.oAuthApprovals.create({
       data: {
         expiresAt: code.expiresAt,
         clientId: client.id,
         userId: user.id,
-      },
-    });
-    this.prismaService.oAuthCode.create({
-      data: {
+        scope: code.scope ? code.scope.toString() : '',
         code: code.authorizationCode,
       },
+      select: {
+        id: true,
+      },
     });
-    return false;
+    if (id) {
+      this.LOG.info('[saveAuthorizationCode] create success');
+    } else {
+      this.LOG.warn('[saveAuthorizationCode] create failed from db');
+      return false;
+    }
+
+    return {
+      authorizationCode: code.authorizationCode,
+      expiresAt: new Date(code.expiresAt),
+      redirectUri: code.redirectUri,
+      scope: code.scope ? code.scope.toString() : '',
+      client: {
+        id: client.id,
+        redirectUris: client.redirectUris,
+        grants: client.grants,
+        accessTokenLifetime: client.accessTokenLifetime,
+        refreshTokenLifetime: client.refreshTokenLifetime,
+      },
+      user: {
+        id: user.id,
+      },
+    };
   }
 
   async revokeAuthorizationCode(code: AuthorizationCode): Promise<boolean> {
-    await this.prismaService.oAuthCode.delete({
+    const { id } = await this.prismaService.oAuthApprovals.delete({
       where: {
         code: code.authorizationCode,
       },
+      select: {
+        id: true,
+      },
     });
-    this.LOG.debug('[revokeAuthorizationCode] delete code success');
 
+    if (!id) {
+      this.LOG.warn('[revokeAuthorizationCode] delete code failed ');
+    } else {
+      this.LOG.debug('[revokeAuthorizationCode] delete code success');
+    }
     return true;
   }
 

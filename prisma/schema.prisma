@@ -31,6 +31,8 @@ model OAuthClientDetails {
   updatedAt   DateTime @default(now()) @map("updated_at")
 
   OAuthToken OAuthToken[]
+
+  OAuthApprovals OAuthApprovals[]
   @@map("oauth_client_details")
 }
 
@@ -70,27 +72,19 @@ model OAuthToken {
   @@map("oauth_token")
 }
 
-model OAuthCode {
-  id             String @id @default(cuid())
-  //AuthorizationRequestHolder.java对象序列化内容
-  authentication String @default("") @map("authentication")
-  //存储服务端系统生成的code的值(未加密)
-  code           String @unique @default("") @map("code")
-
-  @@map("oauth_code")
-}
-
 model OAuthApprovals {
   id        String   @id @default(cuid())
   userId    String   @default("") @map("user_id")
   clientId  String   @default("") @map("client_id")
   scope     String   @default("") @map("scope")
   status    String   @default("") @map("status")
+  code      String   @unique @default("") @map("code")
   expiresAt DateTime @default(now()) @map("expires_at")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @default(now()) @map("updated_at")
 
+  OAuthClientDetails OAuthClientDetails? @relation(fields: [clientId], references: [id])
   @@map("oauth_approvals")
 }
 
