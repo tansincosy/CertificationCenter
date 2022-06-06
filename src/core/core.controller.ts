@@ -18,12 +18,26 @@ export class CoreController {
     return response.status(HttpStatus.OK).json(token);
   }
 
+  @Get('authorize')
+  getAuthorize() {
+    return '';
+  }
+
   @Post('authorize')
-  authorize(@Req() request: Request, @Res() response: Response) {
-    return this.coreService.authorize(
+  async authorize(@Req() request: Request, @Res() response: Response) {
+    const token = await this.coreService.authorize(
       new OAuthRequest(request),
       new OAuthResponse(response),
+      {
+        authenticateHandler: {
+          handle: () => {
+            // Whatever you need to do to authorize / retrieve your user from post data here
+            return false;
+          },
+        },
+      },
     );
+    return response.status(HttpStatus.OK).json(token);
   }
 
   @Get('private')

@@ -6,6 +6,7 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
+    "style": "npx tailwindcss -i ./public/tailwind.css -o ./public/index.css --watch",
     "seed": "ts-node prisma/seed.ts",
     "prebuild": "rimraf dist",
     "build": "nest build",
@@ -28,6 +29,7 @@
     "@prisma/client": "^3.14.0",
     "cache-manager": "^3.6.3",
     "cache-manager-redis-store": "^2.0.0",
+    "hbs": "^4.2.0",
     "lodash": "^4.17.21",
     "log4js": "^6.5.2",
     "oauth2-server": "^3.1.1",
@@ -57,6 +59,7 @@
     "prisma": "^3.14.0",
     "source-map-support": "^0.5.20",
     "supertest": "^6.1.3",
+    "tailwindcss": "^3.0.24",
     "ts-jest": "28.0.1",
     "ts-loader": "^9.2.3",
     "ts-node": "^10.8.0",
