@@ -1,10 +1,20 @@
-import { Controller, Get, HttpStatus, Post, Req, Res } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpStatus,
+  Post,
+  Query,
+  Req,
+  Res,
+} from '@nestjs/common';
 import { CoreService } from './core.service';
 import { Request, Response } from 'express';
 import {
   Request as OAuthRequest,
   Response as OAuthResponse,
 } from 'oauth2-server';
+import { Authorize, User } from './core.type';
 @Controller('oauth')
 export class CoreController {
   constructor(private readonly coreService: CoreService) {}
@@ -19,8 +29,20 @@ export class CoreController {
   }
 
   @Get('authorize')
-  getAuthorize() {
-    return '';
+  async getAuthorize(@Query() authorize: Authorize, @Res() res: Response) {
+    return this.coreService.getAuthorize(authorize, res);
+  }
+
+  @Get('login')
+  async login(@Query() authorize: Authorize, @Res() res: Response) {
+    const [renderName, renderOpt] = await this.coreService.login(authorize);
+    return res.render(renderName, renderOpt);
+  }
+
+  @Post('session')
+  async userSession(@Body() user: User, @Res() res: Response) {
+    const [renderName, renderOpt] = await this.coreService.authUser(user);
+    return res.render(renderName, renderOpt);
   }
 
   @Post('authorize')

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CYA 登录</title>
+    <link href="index.css" rel="stylesheet">
+</head>
+
+<body>
+    <header>
+        <div class="">LOGO</div>
+    </header>
+    <main>
+        <div class="">APP LOGO</div>
+        <div>{{clientName}}</div>
+        <form action="/oauth/session" method="post">
+            {{message}}
+            <div>
+                <label for="username">username:</label>
+                <input type="text" name="username">
+            </div>
+            <div>
+                <label for="password">password:</label>
+                <input type="password" name="password">
+            </div>
+            <div>forgot password?</div>
+            <Button type="submit">submit</Button>
+        </form>
+    </main>
+    <footer>
+        <div>create new account</div>
+    </footer>
+</body>
+
+</html>

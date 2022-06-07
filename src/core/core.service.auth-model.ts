@@ -196,12 +196,12 @@ export class CoreAuthModelService
       },
     });
 
-    if (process.env.DEBUG) {
-      return {
-        id: '1',
-        username: 'username',
-      };
-    }
+    // if (process.env.DEBUG) {
+    //   return {
+    //     id: '1',
+    //     username: 'username',
+    //   };
+    // }
 
     if (!user) {
       this.LOG.warn('[getUser] user is not found!');
