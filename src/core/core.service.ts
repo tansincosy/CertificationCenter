@@ -21,34 +21,28 @@ export class CoreService extends OAuth2Server {
     this.LOG = this.logService.getLogger(CoreService.name);
   }
 
-  async authUser(user: User): Promise<[string, object]> {
+  async authUser(user: User, res: Response) {
     const authResult = await this.model.getUser(user.username, user.password);
     if (!authResult) {
-      this.LOG.warn('username or password is wrong');
-      return [
-        'auth-login',
-        {
-          message: '用户名或密码错误',
-        },
-      ];
+      this.LOG.error('username or password is wrong');
+      return res.render('auth-login', {
+        message: '用户名或密码错误',
+      });
     }
-    return [
-      'auth-authorize',
-      {
-        username: user.username,
-      },
-    ];
+    return res.render('auth-authorize', {
+      username: user.username,
+    });
   }
 
   async mainAuthorize(authorize: Authorize): Promise<[string, object]> {
     return ['auth-login', { username: authorize.client_id }];
   }
 
-  async login(authorize: Authorize): Promise<[string, object]> {
+  async login(authorize: Authorize, res: Response) {
     const { client_id } = authorize;
     this.LOG.info('[login]authorize = %s ', authorize);
     if (!client_id) {
-      return ['auth-404', null];
+      return res.render('auth-404');
     }
     const clientInfo = await this.prismaService.oAuthClientDetails.findUnique({
       where: {
@@ -58,7 +52,7 @@ export class CoreService extends OAuth2Server {
     const { clientName, clientLogo } = toObject<ClientDetail>(
       clientInfo.additionalInformation,
     );
-    return ['auth-login', { clientName, clientLogo }];
+    return res.render('auth-login', { clientName, clientLogo });
   }
 
   //note:判断用户是否登录，如果没有登录跳转到 login页面，如果已经登录则跳转到授权页面
@@ -68,6 +62,18 @@ export class CoreService extends OAuth2Server {
       this.LOG.error('[getAuthorize] client_id or redirect_uri is null');
       return res.render('auth-404');
     }
+
+    const clientInfo = await this.prismaService.oAuthClientDetails.findFirst({
+      where: {
+        id: client_id,
+        webServerRedirectUri: redirect_uri,
+      },
+    });
+
+    if (!clientInfo) {
+      return res.render('auth-404');
+    }
+
     // res.render(renderName, renderOpt);
   }
 }

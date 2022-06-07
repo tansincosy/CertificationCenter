@@ -35,14 +35,12 @@ export class CoreController {
 
   @Get('login')
   async login(@Query() authorize: Authorize, @Res() res: Response) {
-    const [renderName, renderOpt] = await this.coreService.login(authorize);
-    return res.render(renderName, renderOpt);
+    return this.coreService.login(authorize, res);
   }
 
   @Post('session')
   async userSession(@Body() user: User, @Res() res: Response) {
-    const [renderName, renderOpt] = await this.coreService.authUser(user);
-    return res.render(renderName, renderOpt);
+    return this.coreService.authUser(user, res);
   }
 
   @Post('authorize')
