@@ -13,8 +13,25 @@
     <header>
         <div class="">LOGO</div>
     </header>
-    <main></main>
+    <main>
+        <form action="/oauth/authorize" method="post">
+            <input id="clientId" type="text" name="client_id" value="{{client_id}}">
+            <input id="redirectUri" type="text" name="redirect_uri" value="{{redirect_uri}}">
+            <input type="text" name="response_type" value="code">
+            <input type="text" name="state" value="state_tes">
+            <button type="submit">commit</button>
+        </form>
+    </main>
     <footer></footer>
+    <script>
+        window.onload = () => {
+            const locationObj = window.location
+            const clientId = locationObj.search.split('&')[0].split('=')[1]
+            const redirectUri = locationObj.search.split('&')[1].split('=')[1]
+            document.getElementById('clientId').value = clientId
+            document.getElementById('redirectUri').value = redirectUri
+        }
+    </script>
 </body>
 
 </html>

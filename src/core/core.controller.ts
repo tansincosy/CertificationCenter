@@ -1,3 +1,4 @@
+import { toJSON } from '@/util/help.util';
 import {
   Body,
   Controller,
@@ -7,14 +8,15 @@ import {
   Query,
   Req,
   Res,
+  Session,
 } from '@nestjs/common';
 import { CoreService } from './core.service';
-import { Request, Response } from 'express';
+import { query, Request, Response } from 'express';
 import {
   Request as OAuthRequest,
   Response as OAuthResponse,
 } from 'oauth2-server';
-import { Authorize, User } from './core.type';
+import { Authorize, QueryParam, SessionDTO, User } from './core.type';
 @Controller('oauth')
 export class CoreController {
   constructor(private readonly coreService: CoreService) {}
@@ -29,8 +31,12 @@ export class CoreController {
   }
 
   @Get('authorize')
-  async getAuthorize(@Query() authorize: Authorize, @Res() res: Response) {
-    return this.coreService.getAuthorize(authorize, res);
+  async getAuthorize(
+    @Query() authorize: Authorize,
+    @Res() res: Response,
+    @Session() session: SessionDTO,
+  ) {
+    return this.coreService.getAuthorize(authorize, res, session);
   }
 
   @Get('login')
@@ -39,8 +45,13 @@ export class CoreController {
   }
 
   @Post('session')
-  async userSession(@Body() user: User, @Res() res: Response) {
-    return this.coreService.authUser(user, res);
+  async userSession(
+    @Body() user: User,
+    @Query() query: QueryParam,
+    @Res() res: Response,
+    @Session() session: SessionDTO,
+  ) {
+    return this.coreService.authUser(user, res, query, session);
   }
 
   @Post('authorize')
@@ -52,12 +63,14 @@ export class CoreController {
         authenticateHandler: {
           handle: () => {
             // Whatever you need to do to authorize / retrieve your user from post data here
-            return false;
+            return true;
           },
         },
       },
     );
-    return response.status(HttpStatus.OK).json(token);
+    response
+      .status(HttpStatus.OK)
+      .redirect(`${token.redirectUri}?code=${token.authorizationCode}`);
   }
 
   @Get('private')

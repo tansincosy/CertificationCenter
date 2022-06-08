@@ -250,10 +250,10 @@ export class CoreAuthModelService
       },
     });
 
-    if (!client || client.clientSecret !== clientSecret) {
-      this.LOG.warn('client is not found! or client secret is valid');
-      return false;
-    }
+    // if (!client || client.clientSecret !== clientSecret) {
+    //   this.LOG.warn('client is not found! or client secret is valid');
+    //   return false;
+    // }
 
     return {
       id: client.id,

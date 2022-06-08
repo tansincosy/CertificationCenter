@@ -16,7 +16,7 @@
     <main>
         <div class="">APP LOGO</div>
         <div>{{clientName}}</div>
-        <form action="/oauth/session" method="post">
+        <form action="/oauth/session?client_id={{clientId}}&redirect_uri={{redirectUrl}}" method="post">
             {{message}}
             <div>
                 <label for="username">username:</label>

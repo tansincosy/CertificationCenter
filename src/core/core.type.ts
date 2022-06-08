@@ -10,3 +10,8 @@ export class ClientDetail {
   clientName: string;
   clientLogo?: string;
 }
+export class SessionDTO {
+  username?: string;
+}
+
+export class QueryParam extends Authorize {}

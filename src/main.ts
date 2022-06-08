@@ -1,5 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
+import * as session from 'express-session';
 import { join } from 'path';
 import { AppModule } from './app.module';
 import { getConfig } from './common/config/log4js.config';
@@ -13,6 +14,12 @@ async function bootstrap() {
   app.useStaticAssets(join(__dirname, '..', 'public'));
   app.setBaseViewsDir(join(__dirname, '..', 'views'));
   app.setViewEngine('hbs');
+  app.use(
+    session({
+      secret: 'session',
+      resave: false,
+    }),
+  );
 
   await app.listen(process.env.APP_PORT || 3000);
   new Log(getConfig())
