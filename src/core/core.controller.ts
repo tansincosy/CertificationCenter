@@ -3,6 +3,7 @@ import {
   Body,
   Controller,
   Get,
+  Header,
   HttpStatus,
   Post,
   Query,
@@ -69,8 +70,9 @@ export class CoreController {
       },
     );
     response
-      .status(HttpStatus.OK)
-      .redirect(`${token.redirectUri}?code=${token.authorizationCode}`);
+      .status(HttpStatus.MOVED_PERMANENTLY)
+      //地址可访问
+      .redirect(`https://baidu.com?code=${token.authorizationCode}`);
   }
 
   @Get('private')
