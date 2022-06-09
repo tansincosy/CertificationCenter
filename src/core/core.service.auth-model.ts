@@ -97,11 +97,16 @@ export class CoreAuthModelService
       this.LOG.warn('[saveAuthorizationCode] code.authorizationCode is null');
       return false;
     }
+    const userInfo = await this.prismaService.user.findFirst({
+      where: {
+        username: user.username,
+      },
+    });
     const { id } = await this.prismaService.oAuthApprovals.create({
       data: {
         expiresAt: code.expiresAt,
         clientId: client.id,
-        userId: user.id,
+        userId: userInfo.id,
         scope: code.scope ? code.scope.toString() : '',
         code: code.authorizationCode,
       },
@@ -177,8 +182,6 @@ export class CoreAuthModelService
       });
       this.LOG.info('revokeToken refreshToken success');
     }
-
-    // await this.prismaService.$transaction([delAccessToken, delRefreshToken]);
     this.LOG.debug('[revokeToken] process end');
     return true;
   }
@@ -190,18 +193,19 @@ export class CoreAuthModelService
       username,
       secretMask(password),
     );
+
+    if (process.env.APP_ENV === 'dev') {
+      return {
+        id: 'dev',
+        username: 'dev',
+      };
+    }
+
     const user = await this.prismaService.user.findFirst({
       where: {
         username,
       },
     });
-
-    // if (process.env.DEBUG) {
-    //   return {
-    //     id: '1',
-    //     username: 'username',
-    //   };
-    // }
 
     if (!user) {
       this.LOG.warn('[getUser] user is not found!');
@@ -217,7 +221,7 @@ export class CoreAuthModelService
     }
     const cryptoConfigKey = process.env.TOKEN_SECRET || TOKEN.SECRET;
     const decryptPassword = decrypt(cryptoConfigKey, user.password);
-    if (!process.env.DEBUG && user.password !== decryptPassword) {
+    if (process.env.APP_ENV === 'prod' && user.password !== decryptPassword) {
       this.LOG.warn('[getUser] password is not correct!');
       return false;
     }
@@ -250,10 +254,11 @@ export class CoreAuthModelService
       },
     });
 
-    // if (!client || client.clientSecret !== clientSecret) {
-    //   this.LOG.warn('client is not found! or client secret is valid');
-    //   return false;
-    // }
+    //NOTE: code 只有clientId 此处验证clientSecret 是否正确？
+    if (!client || (clientSecret && client.clientSecret !== clientSecret)) {
+      this.LOG.warn('client is not found! or client secret is valid');
+      return false;
+    }
 
     return {
       id: client.id,

@@ -34,7 +34,7 @@ export class CoreService extends OAuth2Server {
     session: SessionDTO,
   ) {
     const authResult = await this.model.getUser(user.username, user.password);
-    if (!authResult && !process.env.DEBUG) {
+    if (!authResult && process.env.APP_ENV !== 'dev') {
       this.LOG.error('username or password is wrong');
       return res.render('auth-login', {
         message: '用户名或密码错误',

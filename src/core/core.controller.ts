@@ -1,9 +1,7 @@
-import { toJSON } from '@/util/help.util';
 import {
   Body,
   Controller,
   Get,
-  Header,
   HttpStatus,
   Post,
   Query,
@@ -12,7 +10,7 @@ import {
   Session,
 } from '@nestjs/common';
 import { CoreService } from './core.service';
-import { query, Request, Response } from 'express';
+import { Request, Response } from 'express';
 import {
   Request as OAuthRequest,
   Response as OAuthResponse,
@@ -56,7 +54,11 @@ export class CoreController {
   }
 
   @Post('authorize')
-  async authorize(@Req() request: Request, @Res() response: Response) {
+  async authorize(
+    @Req() request: Request,
+    @Res() response: Response,
+    @Session() session: SessionDTO,
+  ) {
     const token = await this.coreService.authorize(
       new OAuthRequest(request),
       new OAuthResponse(response),
@@ -64,7 +66,9 @@ export class CoreController {
         authenticateHandler: {
           handle: () => {
             // Whatever you need to do to authorize / retrieve your user from post data here
-            return true;
+            return {
+              username: session.username,
+            };
           },
         },
       },
@@ -72,7 +76,7 @@ export class CoreController {
     response
       .status(HttpStatus.MOVED_PERMANENTLY)
       //地址可访问
-      .redirect(`https://baidu.com?code=${token.authorizationCode}`);
+      .redirect(`https://${token.redirectUri}?code=${token.authorizationCode}`);
   }
 
   @Get('private')
