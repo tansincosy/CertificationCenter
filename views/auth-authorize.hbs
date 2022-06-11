@@ -5,30 +5,62 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CYA 登录</title>
+    <title>CYA 授权页面</title>
     <link href="/index.css" rel="stylesheet">
-    <style>
-        body {
-            background-color: #141019;
-            background: radial-gradient(at 50% -20%, #908392, #0d060e) fixed;
-        }
-    </style>
 </head>
 
 <body>
-    <header>
-        <div class="">LOGO</div>
-    </header>
-    <main>
-        <form action="/oauth/authorize" method="post">
-            <input id="clientId" type="text" name="client_id" value="{{client_id}}">
-            <input id="redirectUri" type="text" name="redirect_uri" value="{{redirect_uri}}">
-            <input type="text" name="response_type" value="code">
-            <input type="text" name="state" value="state_tes">
-            <button type="submit">commit</button>
-        </form>
-    </main>
-    <footer></footer>
+    <div class="flex min-h-screen flex-col items-center justify-center">
+        <div class="container mx-auto px-3 w-4/5 box-border md:w-96">
+            <main>
+                <div
+                    class="flex
+                    w-9/12
+                    mx-auto
+                    space-x-14 justify-between items-center relative
+                    before:absolute before:top-1/2 before:left-0 before:w-full before:border-dashed before:border-t-2 before:border-gray-600 before:content-['']">
+                    <img class="h-14 w-auto relative"
+                        src="https://tailwindui.com/img/logos/workflow-mark-indigo-600.svg" alt="Workflow">
+                    <div class="relative flex justify-center items-center rounded-full w-8 h-8 bg-green-500">
+                        <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16"
+                            data-view-component="true" class="text-white">
+                            <path fill-rule="#ffffff"
+                                d="M13.78 4.22a.75.75 0 010 1.06l-7.25 7.25a.75.75 0 01-1.06 0L2.22 9.28a.75.75 0 011.06-1.06L6 10.94l6.72-6.72a.75.75 0 011.06 0z">
+                            </path>
+                        </svg>
+                    </div>
+                    <img class="h-14 w-auto relative"
+                        src="https://tailwindui.com/img/logos/workflow-mark-indigo-600.svg" alt="Workflow">
+                </div>
+                <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">授权 {{client.clientName}}</h2>
+                <p class="mt-2 text-center text-sm text-gray-600">
+                    <a href="#" class="font-medium text-indigo-600 hover:text-indigo-500">{{client.clientName}}
+                        将通过 {{user.username}} 访问数据
+                    </a>
+                </p>
+                <form action="/oauth/authorize" method="post" class="mt-8 space-y-6">
+                    <input id="clientId" type="text" name="client_id" value="{{client_id}}" class="hidden">
+                    <input id="redirectUri" type="text" name="redirect_uri" value="{{redirect_uri}}" class="hidden">
+                    <input type="text" name="response_type" value="code" class="hidden">
+                    <input type="text" name="state" value="state_tes" class="hidden">
+                    <div class="flex items-center justify-end">
+                        <input id="approveType" name="autoApprove" type="checkbox"
+                            class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                        <label for="remember-me" class="ml-2 block text-sm text-gray-900"> 记住授权 </label>
+                    </div>
+
+                    <div class="flex justify-between space-x-2">
+                        <button
+                            class="border-gray-300 shadow-sm group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-black bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">取消</button>
+                        <button type="submit"
+                            class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">授权此应用</button>
+                    </div>
+
+                </form>
+            </main>
+        </div>
+    </div>
+
     <script>
         window.onload = () => {
             const locationObj = window.location
