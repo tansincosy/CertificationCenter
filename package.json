@@ -6,7 +6,7 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "style": "npx tailwindcss -i ./public/tailwind.css -o ./public/index.css --watch",
+    "style": "npx tailwindcss -i ./public/tailwind.css -o ./public/index.css --watch -m",
     "seed": "ts-node prisma/seed.ts",
     "prebuild": "rimraf dist",
     "build": "nest build",
