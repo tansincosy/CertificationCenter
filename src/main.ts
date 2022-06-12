@@ -18,6 +18,7 @@ async function bootstrap() {
     session({
       secret: 'session',
       resave: false,
+      saveUninitialized: true,
     }),
   );
 
