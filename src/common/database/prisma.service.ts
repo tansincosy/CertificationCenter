@@ -28,9 +28,18 @@ export class PrismaService
     this.init();
   }
 
-  init() {
+  async init() {
+    const cacheMiddles = this.middleware.createCacheMiddleware({
+      OAuthApprovals: {
+        actions: ['create', 'findFirst'],
+        uniqueKey: 'code',
+        ttl: 10 * 60,
+      },
+    });
+    cacheMiddles.forEach(async (cacheMiddle) => {
+      this.$use(await cacheMiddle);
+    });
     this.$use(this.middleware.updateSessionMiddleware.bind(this.middleware));
-    this.$use(this.middleware.cacheMiddleware.bind(this.middleware));
     this.$on('query', this.makeBatchLogger.bind(this));
   }
 
