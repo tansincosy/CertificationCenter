@@ -78,18 +78,4 @@ export class CoreController {
       //地址可访问
       .redirect(`https://${token.redirectUri}?code=${token.authorizationCode}`);
   }
-
-  @Get('private')
-  async getPrimaryData(@Req() request: Request, @Res() response: Response) {
-    await this.coreService
-      .authenticate(new OAuthRequest(request), new OAuthResponse(response))
-      .catch((error) => {
-        console.error(error);
-        throw error;
-      });
-
-    return response.status(HttpStatus.OK).json({
-      ss: '',
-    });
-  }
 }

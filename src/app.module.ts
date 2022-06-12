@@ -7,11 +7,11 @@ import * as store from 'cache-manager-redis-store';
 import { CoreModule } from './core/core.module';
 
 const cacheRedisStore = () => {
-  if (process.env.CACHE_STORE_HOST && process.env.CACHE_STORE_PORT) {
+  if (process.env.REDIS_STORE_HOST && process.env.REDIS_STORE_PORT) {
     return {
       store: store,
-      host: process.env.CACHE_STORE_HOST,
-      port: parseInt(process.env.CACHE_STORE_PORT, 10),
+      host: process.env.REDIS_STORE_HOST,
+      port: parseInt(process.env.REDIS_STORE_PORT, 10),
       isGlobal: true,
     };
   }

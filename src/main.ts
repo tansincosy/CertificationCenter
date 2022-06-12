@@ -4,6 +4,7 @@ import * as session from 'express-session';
 import { join } from 'path';
 import { AppModule } from './app.module';
 import { getConfig } from './common/config/log4js.config';
+import { SESSION } from './constant/token.constant';
 import { Log } from './util/log.util';
 
 async function bootstrap() {
@@ -16,7 +17,7 @@ async function bootstrap() {
   app.setViewEngine('hbs');
   app.use(
     session({
-      secret: 'session',
+      secret: SESSION.SECRET,
       resave: false,
       saveUninitialized: true,
     }),

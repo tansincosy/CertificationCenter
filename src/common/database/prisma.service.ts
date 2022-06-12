@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { Prisma, PrismaClient } from '@prisma/client';
 import { Logger, LoggerService } from '../log4j/log4j.service';
+import { PrismaMiddleware } from './prisma.middleware';
 
 @Injectable()
 export class PrismaService
@@ -15,36 +16,25 @@ export class PrismaService
   private log: Logger;
   private logList: any;
   private logListFlag: boolean;
-  constructor(private readonly logger: LoggerService) {
+  constructor(
+    private readonly logger: LoggerService,
+    private readonly middleware: PrismaMiddleware,
+  ) {
     super({
       log: [{ emit: 'event', level: 'query' }],
       errorFormat: 'colorless',
     });
     this.log = this.logger.getLogger(PrismaService.name);
-
-    this.$use(async (params, next) => {
-      const { action, args } = params;
-      if (action === 'update') {
-        const { data } = args || {};
-        data.updatedAt = new Date().toISOString();
-      }
-      const before = Date.now();
-      const result = await next(params);
-      const after = Date.now();
-      this.log.info(
-        `[prisma:query] ${params.model}.${params.action} took ${
-          after - before
-        }ms`,
-      );
-      return result;
-    });
-    this.$on('query', (e) => {
-      const { query } = e;
-      this.makeBatchLogger(query);
-    });
+    this.init();
   }
 
-  makeBatchLogger(query: string) {
+  init() {
+    this.$use(this.middleware.updateSessionMiddleware.bind(this.middleware));
+    this.$use(this.middleware.cacheMiddleware.bind(this.middleware));
+    this.$on('query', this.makeBatchLogger.bind(this));
+  }
+
+  makeBatchLogger({ query }) {
     if (query === 'BEGIN') {
       this.logList = [];
       this.logListFlag = true;
