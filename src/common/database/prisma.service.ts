@@ -30,10 +30,8 @@ export class PrismaService
 
   async init() {
     const cacheMiddles = this.middleware.createCacheMiddleware({
-      OAuthApprovals: {
-        actions: ['create', 'findFirst'],
-        uniqueKey: 'code',
-        ttl: 10 * 60,
+      OAuthToken: {
+        ttl: 30 * 24 * 60 * 60,
       },
     });
     cacheMiddles.forEach(async (cacheMiddle) => {

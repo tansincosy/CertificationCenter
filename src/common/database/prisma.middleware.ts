@@ -1,3 +1,4 @@
+import { toJSON } from '@/util/help.util';
 import { CACHE_MANAGER, Inject, Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { Cache } from 'cache-manager';
@@ -5,8 +6,6 @@ import { Logger, LoggerService } from '../log4j/log4j.service';
 
 export type CacheMiddlewareOpt = {
   [key in Prisma.ModelName]?: {
-    actions: Prisma.PrismaAction[];
-    uniqueKey: string;
     ttl: number;
   };
 };
@@ -52,43 +51,31 @@ export class PrismaMiddleware {
       ) => {
         const { model, action, args } = params;
         const curModelObj = cacheOption[modelName];
+        let result = null;
         if (modelName === model) {
-          const { data } = args;
-          if (action === 'create' && curModelObj.actions.includes('create')) {
-            //设置唯一值
-            this.cacheManager.set(
-              `Prisma.ModelName.${modelName}:${
-                data[curModelObj.uniqueKey] || ''
-              }`,
-              data,
-              {
-                ttl: curModelObj.ttl || -1,
-              },
-            );
-            return await next(params);
-          }
+          const { where } = args;
+          const cacheKey = `Prisma.ModelName.${modelName}:${
+            toJSON(where) || ''
+          }`;
           if (
-            [
-              'findUnique',
-              'findMany',
-              'findFirst',
-              'count',
-              'findRaw',
-              'queryRaw',
-            ].includes(action)
+            ['findUnique', 'findMany', 'findFirst', 'count'].includes(action)
           ) {
-            const result = await this.cacheManager.get(
-              `Prisma.ModelName.${modelName}:${
-                data[curModelObj.uniqueKey] || ''
-              }`,
-            );
+            result = await this.cacheManager.get(cacheKey);
             if (result) {
               this.log.info('%s data from cache', modelName);
-              return result;
+            } else {
+              result = await next(params);
+              this.log.info('%s data from db ,then save cache', modelName);
+              await this.cacheManager.set(cacheKey, result, {
+                ttl: curModelObj.ttl,
+              });
             }
-            this.log.debug('%s data from db', modelName);
-            return await next(params);
+            return result;
           }
+          if (['deleteMany', 'delete'].includes(action)) {
+            await this.cacheManager.del(cacheKey);
+          }
+          return await next(params);
         }
         this.log.debug('%s data from db', modelName);
         return await next(params);
