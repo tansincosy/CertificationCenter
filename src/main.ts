@@ -4,7 +4,9 @@ import * as session from 'express-session';
 import { join } from 'path';
 import { AppModule } from './app.module';
 import { getConfig } from './common/config/log4js.config';
+import { LoggerService } from './common/log4j/log4j.service';
 import { SESSION } from './constant/token.constant';
+import { HttpExceptionFilter } from './filter/error.filter';
 import { Log } from './util/log.util';
 
 async function bootstrap() {
@@ -14,6 +16,7 @@ async function bootstrap() {
 
   app.useStaticAssets(join(__dirname, '..', 'public'));
   app.setBaseViewsDir(join(__dirname, '..', 'views'));
+  app.useGlobalFilters(new HttpExceptionFilter(app.get(LoggerService)));
   app.setViewEngine('hbs');
   app.use(
     session({

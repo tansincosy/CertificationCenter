@@ -26,7 +26,13 @@ export class CoreController {
       new OAuthRequest(request),
       new OAuthResponse(response),
     );
-    return response.status(HttpStatus.OK).json(token);
+    const TokenResponse = {
+      access_token: token.accessToken,
+      expires_in: token.client.accessTokenLifetime || 0,
+      refresh_token: token.refreshToken,
+      token_type: 'Bearer',
+    };
+    return response.status(HttpStatus.OK).json(TokenResponse);
   }
 
   @Get('authorize')
@@ -77,5 +83,16 @@ export class CoreController {
       .status(HttpStatus.MOVED_PERMANENTLY)
       //地址可访问
       .redirect(`https://${token.redirectUri}?code=${token.authorizationCode}`);
+  }
+
+  @Get('getPrivate')
+  async getPrivate(@Req() request: Request, @Res() response: Response) {
+    await this.coreService.authenticate(
+      new OAuthRequest(request),
+      new OAuthResponse(response),
+    );
+    return response.status(HttpStatus.OK).json({
+      user: 'userinfo',
+    });
   }
 }

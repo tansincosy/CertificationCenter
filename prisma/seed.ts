@@ -6,7 +6,14 @@ async function main() {
   await prisma.oAuthClientDetails.create({
     data: {
       clientSecret: 'clientSecret',
-      authorizedGrantTypes: 'password,refresh_token',
+      authorizedGrantTypes: 'password,refresh_token,authorization_code',
+    },
+  });
+  await prisma.user.create({
+    data: {
+      username: 'yy921010',
+      password:
+        'ade07a952dc602a3514ebeb83ec8aa36:adfa025aaa1e4b1ded169dda56a9df95',
     },
   });
 }

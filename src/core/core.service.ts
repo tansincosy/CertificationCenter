@@ -23,6 +23,7 @@ export class CoreService extends OAuth2Server {
   ) {
     super({
       model,
+      scope: 'admin:read',
     });
     this.LOG = this.logService.getLogger(CoreService.name);
   }

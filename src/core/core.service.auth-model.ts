@@ -187,7 +187,6 @@ export class CoreAuthModelService
   }
 
   async getUser(username: string, password: string): Promise<User | Falsey> {
-    //NOTE: 是否托管用户信息？
     this.LOG.debug(
       '[getUser] username = %s, password = %s',
       username,
@@ -265,7 +264,7 @@ export class CoreAuthModelService
       clientSecret: client.clientSecret,
       grants: client.authorizedGrantTypes?.split(',') || '',
       redirectUris: client.webServerRedirectUri || '',
-      scope: client.scope?.split(',') || '',
+      scope: client.scope || '',
       accessTokenLifetime: client.accessTokenValidity || 0,
       refreshTokenLifetime: client.refreshTokenValidity || 0,
     };
@@ -358,7 +357,7 @@ export class CoreAuthModelService
     return {
       refreshToken: tokenDB.refreshToken,
       refreshTokenExpiresAt: new Date(tokenObj.refreshTokenExpiresAt),
-      scope: '',
+      scope: tokenObj.scope,
       client: {
         id: tokenDB.OAuthClientDetails.id,
         clientSecret: tokenDB.OAuthClientDetails.clientSecret,
@@ -411,7 +410,60 @@ export class CoreAuthModelService
       scope: tokenObj.scope,
     };
   }
+  /**
+   *  Invoked during request authentication
+   * to check if the provided access token was authorized the requested scopes.
+   */
   async verifyScope(token: Token, scope: string | string[]): Promise<boolean> {
-    return true;
+    this.LOG.info('[verifyScope] token = %s , scope = %s', token, scope);
+    if (!token.scope) {
+      this.LOG.warn('[verifyScope] token.scope is empty!');
+      return false;
+    }
+    const requestedScopes = Array.isArray(scope) ? scope : scope?.split(',');
+    const authorizedScopes = Array.isArray(token.scope)
+      ? token.scope
+      : token.scope?.split(',');
+    this.LOG.info('[verifyScope] authorizedScopes = %s', authorizedScopes);
+    return requestedScopes.every((s) => authorizedScopes.indexOf(s) >= 0);
+  }
+
+  /**
+   * 校验scope
+   * @param user
+   * @param client
+   * @param scope
+   * @returns
+   */
+  async validateScope(
+    user: User,
+    client: Client,
+    scope: string,
+  ): Promise<string | string[] | Falsey> {
+    this.LOG.debug(
+      '[validateScope] user = %s , client = %s , scope = %s',
+      user,
+      client,
+      scope,
+    );
+    if (!scope) {
+      this.LOG.warn('scope is empty');
+      return false;
+    }
+    const clientScope = client.scope;
+    if (!clientScope) {
+      this.LOG.error('client scope is empty');
+      return false;
+    }
+    const clientScopes = clientScope.split(',') || [];
+    const isPassed = scope
+      .split(',')
+      .filter((s) => clientScopes.indexOf(s) >= 0)
+      .join(' ');
+    if (!isPassed) {
+      this.LOG.info('Invalid scope');
+      return false;
+    }
+    return isPassed;
   }
 }
