@@ -90,6 +90,9 @@ export class CoreController {
     await this.coreService.authenticate(
       new OAuthRequest(request),
       new OAuthResponse(response),
+      {
+        scope: 'admin:read,admin:write',
+      },
     );
     return response.status(HttpStatus.OK).json({
       user: 'userinfo',

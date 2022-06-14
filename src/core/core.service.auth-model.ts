@@ -386,6 +386,7 @@ export class CoreAuthModelService
             id: true,
             clientSecret: true,
             authorizedGrantTypes: true,
+            scope: true,
           },
         },
       },
@@ -403,11 +404,11 @@ export class CoreAuthModelService
         username: token.username,
       },
       client: {
-        id: tokenObj.clientId,
+        id: token.OAuthClientDetails.id,
         clientSecret: token.OAuthClientDetails.clientSecret,
         grants: token.OAuthClientDetails.authorizedGrantTypes,
       },
-      scope: tokenObj.scope,
+      scope: token.OAuthClientDetails.scope,
     };
   }
   /**
@@ -415,55 +416,16 @@ export class CoreAuthModelService
    * to check if the provided access token was authorized the requested scopes.
    */
   async verifyScope(token: Token, scope: string | string[]): Promise<boolean> {
-    this.LOG.info('[verifyScope] token = %s , scope = %s', token, scope);
+    this.LOG.debug('[verifyScope] token = %s , scope = %s', token, scope);
     if (!token.scope) {
       this.LOG.warn('[verifyScope] token.scope is empty!');
       return false;
     }
-    const requestedScopes = Array.isArray(scope) ? scope : scope?.split(',');
-    const authorizedScopes = Array.isArray(token.scope)
+    const authorizedScopes = Array.isArray(scope) ? scope : scope?.split(',');
+    const requestedScopes = Array.isArray(token.scope)
       ? token.scope
       : token.scope?.split(',');
     this.LOG.info('[verifyScope] authorizedScopes = %s', authorizedScopes);
     return requestedScopes.every((s) => authorizedScopes.indexOf(s) >= 0);
-  }
-
-  /**
-   * 校验scope
-   * @param user
-   * @param client
-   * @param scope
-   * @returns
-   */
-  async validateScope(
-    user: User,
-    client: Client,
-    scope: string,
-  ): Promise<string | string[] | Falsey> {
-    this.LOG.debug(
-      '[validateScope] user = %s , client = %s , scope = %s',
-      user,
-      client,
-      scope,
-    );
-    if (!scope) {
-      this.LOG.warn('scope is empty');
-      return false;
-    }
-    const clientScope = client.scope;
-    if (!clientScope) {
-      this.LOG.error('client scope is empty');
-      return false;
-    }
-    const clientScopes = clientScope.split(',') || [];
-    const isPassed = scope
-      .split(',')
-      .filter((s) => clientScopes.indexOf(s) >= 0)
-      .join(' ');
-    if (!isPassed) {
-      this.LOG.info('Invalid scope');
-      return false;
-    }
-    return isPassed;
   }
 }

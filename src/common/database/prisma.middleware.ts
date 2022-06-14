@@ -66,9 +66,11 @@ export class PrismaMiddleware {
             } else {
               result = await next(params);
               this.log.info('%s data from db ,then save cache', modelName);
-              await this.cacheManager.set(cacheKey, result, {
-                ttl: curModelObj.ttl,
-              });
+              if (result) {
+                await this.cacheManager.set(cacheKey, result, {
+                  ttl: curModelObj.ttl,
+                });
+              }
             }
             return result;
           }
