@@ -20,8 +20,8 @@ async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     logger: new Log(getConfig()),
   });
-  app.useStaticAssets(join(__dirname, '../', 'public'));
-  app.setBaseViewsDir(join(__dirname, '../', 'views'));
+  app.useStaticAssets(join(__dirname, './', 'public'));
+  app.setBaseViewsDir(join(__dirname, './', 'views'));
   app.useGlobalFilters(new HttpExceptionFilter(app.get(LoggerService)));
   setHBSEngine(app);
   app.use(

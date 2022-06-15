@@ -8,16 +8,24 @@ log() {
     echo "$(date '+%Y-%m-%d %H:%M:%S') $*"
 }
 
+pre_build() {
+    if [ -d './build' ]; then
+        log "删除旧的build文件夹"
+        rm -rf ./build
+    fi
+    if [ -e 'bundle.tar.gz' ]; then
+        log "删除旧的bundle.tar.gz文件"
+        rm -rf ./bundle.tar.gz
+    fi
+}
+
 build_base_pack() {
     log "构建nestAPP 基本打包模块"
     npm run build
 }
 
 build_bundle_pack() {
-    if [ -d './build' ]; then
-        log "删除旧的build文件夹"
-        rm -rf ./build
-    fi
+
     log "通过ncc将多个文件合并为一个node-js文件"
     npm run build:bundle
 }
@@ -26,8 +34,8 @@ cp_assets_to_bunlde() {
     if [ "$?XXX" = "0XXX" ]; then
         log "复制静态资源到到打包资源中"
         mkdir -p ./build/public/
-        cp -r ./dist/views ./build/views/
-        cp -r ./dist/public/index.css ./build/public/
+        cp -r ./dist/src/views ./build/views/
+        cp -r ./dist/src/public/index.css ./build/public/
     fi
 }
 
@@ -49,6 +57,7 @@ build_log() {
    " >>./build/build.log
 }
 
+pre_build
 build_base_pack
 build_bundle_pack
 mv_prisma_node_up_dir

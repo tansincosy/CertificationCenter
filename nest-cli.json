@@ -7,11 +7,11 @@
     "assets": [
       {
         "include": "../views/*.hbs",
-        "outDir": "./dist/views"
+        "outDir": "./dist/src/views"
       },
       {
         "include": "../public/*.css",
-        "outDir": "./dist/public"
+        "outDir": "./dist/src/public"
       }
     ]
   }
