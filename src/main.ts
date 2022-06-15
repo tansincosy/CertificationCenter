@@ -8,16 +8,22 @@ import { LoggerService } from './common/log4j/log4j.service';
 import { SESSION } from './constant/token.constant';
 import { HttpExceptionFilter } from './filter/error.filter';
 import { Log } from './util/log.util';
+import * as HBS from 'hbs';
 
+function setHBSEngine(app) {
+  app.set('view engine', 'hbs');
+  app.engine('hbs', HBS.__express);
+}
+
+console.log('cwd', process.cwd());
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     logger: new Log(getConfig()),
   });
-
-  app.useStaticAssets(join(__dirname, '..', 'public'));
-  app.setBaseViewsDir(join(__dirname, '..', 'views'));
+  app.useStaticAssets(join(__dirname, '../', 'public'));
+  app.setBaseViewsDir(join(__dirname, '../', 'views'));
   app.useGlobalFilters(new HttpExceptionFilter(app.get(LoggerService)));
-  app.setViewEngine('hbs');
+  setHBSEngine(app);
   app.use(
     session({
       secret: SESSION.SECRET,

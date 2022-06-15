@@ -12,26 +12,6 @@ export const getConfig = () => {
           pattern: '%[[%d{yyyy-MM-dd hh:mm:ss.SSS}] [%p] %c -%] %m',
         },
       },
-      access: {
-        type: 'dateFile',
-        filename: `${logPath}/interface/i_APP.log`,
-        pattern: 'yyyy-MM-dd',
-        category: 'http',
-        layout: {
-          type: 'pattern',
-          pattern: '[%d{yyyy-MM-dd hh:mm:ss.SSS}] [%p] [%c] - %m',
-        },
-      },
-      download: {
-        type: 'dateFile',
-        filename: `${logPath}/download/d_APP.log`,
-        pattern: 'yyyy-MM-dd',
-        category: 'download',
-        layout: {
-          type: 'pattern',
-          pattern: '[%d{yyyy-MM-dd hh:mm:ss.SSS}] [%p] [%c] - %m',
-        },
-      },
       appLog: {
         type: 'dateFile',
         filename: `${logPath}/app/c_APP.log`,
@@ -71,8 +51,6 @@ export const getConfig = () => {
         appenders: ['console', 'appLogFilter', 'errors'],
         level: logLevel,
       },
-      http: { appenders: ['access'], level: logLevel },
-      download: { appenders: ['download'], level: logLevel },
     },
   };
   return logConfig;

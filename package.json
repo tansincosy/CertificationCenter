@@ -1,5 +1,5 @@
 {
-  "name": "spd-oauth2-server",
+  "name": "grocery-oauth",
   "version": "0.0.1",
   "description": "",
   "author": "tansincosy",
@@ -7,6 +7,7 @@
   "license": "Apache License 2.0",
   "scripts": {
     "style": "npx tailwindcss -i ./public/tailwind.css -o ./public/index.css --watch -m",
+    "build:bundle": "ncc build dist/src/main.js -o build -m",
     "seed": "ts-node prisma/seed.ts",
     "prebuild": "rimraf dist",
     "build": "nest build",
@@ -14,7 +15,6 @@
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
-    "start:prod": "node dist/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest",
     "test:watch": "jest --watch",
