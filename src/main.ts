@@ -15,7 +15,6 @@ function setHBSEngine(app) {
   app.engine('hbs', HBS.__express);
 }
 
-console.log('cwd', process.cwd());
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     logger: new Log(getConfig()),

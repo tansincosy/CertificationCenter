@@ -1,17 +1,22 @@
 import { PrismaService } from '@/common/database/prisma.service';
 import { Logger, LoggerService } from '@/common/log4j/log4j.service';
 import { toObject } from '@/util/help.util';
-import { Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable } from '@nestjs/common';
 import * as OAuth2Server from 'oauth2-server';
 import { CoreAuthModelService } from './core.service.auth-model';
 import {
+  AuthBody,
   Authorize,
   ClientDetail,
   QueryParam,
   SessionDTO,
   User,
 } from './core.type';
-import { Response } from 'express';
+import { Response, Request } from 'express';
+import {
+  Request as OAuthRequest,
+  Response as OAuthResponse,
+} from 'oauth2-server';
 
 @Injectable()
 export class CoreService extends OAuth2Server {
@@ -124,5 +129,60 @@ export class CoreService extends OAuth2Server {
     return res.redirect(
       `/oauth/login?client_id=${client_id}&redirect_uri=${redirect_uri}`,
     );
+  }
+
+  async doAuthenticate(authBody: AuthBody) {
+    const { token, scope } = authBody;
+    const tokenObj = await super.authenticate(
+      new OAuthRequest({
+        headers: {
+          Authorization: token,
+        },
+      }),
+      new OAuthResponse({}),
+      {
+        scope,
+      },
+    );
+    return tokenObj;
+  }
+
+  async doAuthorize(request: Request, response: Response, session: SessionDTO) {
+    const token = await super.authorize(
+      new OAuthRequest(request),
+      new OAuthResponse(response),
+      {
+        authenticateHandler: {
+          handle: () => {
+            // Whatever you need to do to authorize / retrieve your user from post data here
+            return {
+              username: session.username,
+            };
+          },
+        },
+      },
+    );
+    return (
+      response
+        .status(HttpStatus.MOVED_PERMANENTLY)
+        //地址可访问
+        .redirect(
+          `https://${token.redirectUri}?code=${token.authorizationCode}`,
+        )
+    );
+  }
+
+  async doToken(request: Request, response: Response) {
+    const token = await super.token(
+      new OAuthRequest(request),
+      new OAuthResponse(response),
+    );
+    const TokenResponse = {
+      access_token: token.accessToken,
+      expires_in: token.client.accessTokenLifetime || 0,
+      refresh_token: token.refreshToken,
+      token_type: 'Bearer',
+    };
+    return response.status(HttpStatus.OK).json(TokenResponse);
   }
 }

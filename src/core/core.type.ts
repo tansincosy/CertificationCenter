@@ -15,3 +15,8 @@ export class SessionDTO {
 }
 
 export class QueryParam extends Authorize {}
+
+export class AuthBody {
+  token: string;
+  scope?: string;
+}

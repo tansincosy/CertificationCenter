@@ -2,7 +2,6 @@ import {
   Body,
   Controller,
   Get,
-  HttpStatus,
   Post,
   Query,
   Req,
@@ -11,28 +10,14 @@ import {
 } from '@nestjs/common';
 import { CoreService } from './core.service';
 import { Request, Response } from 'express';
-import {
-  Request as OAuthRequest,
-  Response as OAuthResponse,
-} from 'oauth2-server';
-import { Authorize, QueryParam, SessionDTO, User } from './core.type';
+import { AuthBody, Authorize, QueryParam, SessionDTO, User } from './core.type';
 @Controller('oauth')
 export class CoreController {
   constructor(private readonly coreService: CoreService) {}
 
   @Post('token')
   async token(@Req() request: Request, @Res() response: Response) {
-    const token = await this.coreService.token(
-      new OAuthRequest(request),
-      new OAuthResponse(response),
-    );
-    const TokenResponse = {
-      access_token: token.accessToken,
-      expires_in: token.client.accessTokenLifetime || 0,
-      refresh_token: token.refreshToken,
-      token_type: 'Bearer',
-    };
-    return response.status(HttpStatus.OK).json(TokenResponse);
+    return this.coreService.doToken(request, response);
   }
 
   @Get('authorize')
@@ -65,37 +50,11 @@ export class CoreController {
     @Res() response: Response,
     @Session() session: SessionDTO,
   ) {
-    const token = await this.coreService.authorize(
-      new OAuthRequest(request),
-      new OAuthResponse(response),
-      {
-        authenticateHandler: {
-          handle: () => {
-            // Whatever you need to do to authorize / retrieve your user from post data here
-            return {
-              username: session.username,
-            };
-          },
-        },
-      },
-    );
-    response
-      .status(HttpStatus.MOVED_PERMANENTLY)
-      //地址可访问
-      .redirect(`https://${token.redirectUri}?code=${token.authorizationCode}`);
+    return this.coreService.doAuthorize(request, response, session);
   }
 
-  @Get('getPrivate')
-  async getPrivate(@Req() request: Request, @Res() response: Response) {
-    await this.coreService.authenticate(
-      new OAuthRequest(request),
-      new OAuthResponse(response),
-      {
-        scope: 'admin:read,admin:write',
-      },
-    );
-    return response.status(HttpStatus.OK).json({
-      user: 'userinfo',
-    });
+  @Post('authenticate')
+  async authenticate(@Body() authBody: AuthBody) {
+    return this.coreService.doAuthenticate(authBody);
   }
 }
