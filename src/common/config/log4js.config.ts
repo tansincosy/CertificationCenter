@@ -2,7 +2,8 @@ import { Configuration } from 'log4js';
 
 export const getConfig = () => {
   const logPath = process.env.LOG_PATH || 'app_data/logs';
-  const logLevel = process.env.LOG_LEVEL || 'info';
+  const logLevel =
+    process.env.NODE_ENV === 'test' ? 'off' : process.env.LOG_LEVEL || 'info';
   const logConfig: Configuration = {
     appenders: {
       console: {

@@ -136,10 +136,12 @@ export class CoreService extends OAuth2Server {
     const tokenObj = await super.authenticate(
       new OAuthRequest({
         headers: {
-          Authorization: token,
+          authorization: `Bearer ${token}`,
         },
+        method: 'GET',
+        query: {},
       }),
-      new OAuthResponse({}),
+      new OAuthResponse(),
       {
         scope,
       },

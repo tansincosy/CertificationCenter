@@ -193,13 +193,6 @@ export class CoreAuthModelService
       secretMask(password),
     );
 
-    if (process.env.APP_ENV === 'dev') {
-      return {
-        id: 'dev',
-        username: 'dev',
-      };
-    }
-
     const user = await this.prismaService.user.findFirst({
       where: {
         username,
@@ -219,7 +212,10 @@ export class CoreAuthModelService
       return false;
     }
     const cryptoConfigKey = process.env.TOKEN_SECRET || TOKEN.SECRET;
-    const decryptPassword = decrypt(cryptoConfigKey, user.password);
+    const decryptPassword =
+      process.env.NODE_ENV === 'test'
+        ? user.password
+        : decrypt(cryptoConfigKey, user.password);
     if (process.env.APP_ENV === 'prod' && user.password !== decryptPassword) {
       this.LOG.warn('[getUser] password is not correct!');
       return false;
@@ -421,11 +417,15 @@ export class CoreAuthModelService
       this.LOG.warn('[verifyScope] token.scope is empty!');
       return false;
     }
-    const authorizedScopes = Array.isArray(scope) ? scope : scope?.split(',');
-    const requestedScopes = Array.isArray(token.scope)
+    const requestedScopes = Array.isArray(scope) ? scope : scope?.split(',');
+    const authorizedScopes = Array.isArray(token.scope)
       ? token.scope
       : token.scope?.split(',');
-    this.LOG.info('[verifyScope] authorizedScopes = %s', authorizedScopes);
+    this.LOG.info(
+      '[verifyScope] authorizedScopes = %s,requestedScopes = %s',
+      authorizedScopes,
+      requestedScopes,
+    );
     return requestedScopes.every((s) => authorizedScopes.indexOf(s) >= 0);
   }
 }
