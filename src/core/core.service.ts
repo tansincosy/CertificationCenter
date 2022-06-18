@@ -28,6 +28,7 @@ export class CoreService extends OAuth2Server {
   ) {
     super({
       model,
+      allowExtendedTokenAttributes: true,
     });
     this.LOG = this.logService.getLogger(CoreService.name);
   }
@@ -164,13 +165,16 @@ export class CoreService extends OAuth2Server {
         },
       },
     );
+    const queryBody = request.body;
+    let redirectUrl = `https://${token.redirectUri}?code=${token.authorizationCode}`;
+    if (queryBody.state) {
+      redirectUrl = redirectUrl += `&state=${queryBody.state}`;
+    }
     return (
       response
         .status(HttpStatus.MOVED_PERMANENTLY)
         //地址可访问
-        .redirect(
-          `https://${token.redirectUri}?code=${token.authorizationCode}`,
-        )
+        .redirect(redirectUrl)
     );
   }
 

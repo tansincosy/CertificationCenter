@@ -60,11 +60,12 @@ export class CoreAuthModelService
     }
 
     this.LOG.debug(
-      '[getAuthorizationCode] authorizationObj = %s',
+      '[getAuthorizationCode] authorizationObj = %s ,authorizationObj.OAuthClientDetails = %s',
       authorizationObj,
+      authorizationObj.OAuthClientDetails,
     );
 
-    return {
+    const result = {
       authorizationCode: authorizationObj.code,
       expiresAt: new Date(authorizationObj.expiresAt),
       redirectUri: authorizationObj.OAuthClientDetails.webServerRedirectUri,
@@ -82,6 +83,8 @@ export class CoreAuthModelService
         id: authorizationObj.userId,
       },
     };
+    this.LOG.debug('result =', result);
+    return result;
   }
 
   async saveAuthorizationCode(
@@ -106,7 +109,7 @@ export class CoreAuthModelService
       data: {
         expiresAt: code.expiresAt,
         clientId: client.id,
-        userId: userInfo.id,
+        userId: userInfo ? userInfo.id : '',
         scope: code.scope ? code.scope.toString() : '',
         code: code.authorizationCode,
       },

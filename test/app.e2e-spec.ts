@@ -1,15 +1,21 @@
 import { PrismaService } from '@/common/database/prisma.service';
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from './../src/app.module';
 import { HttpExceptionFilter } from '@/filter/error.filter';
 import { LoggerService } from '@/common/log4j/log4j.service';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { clientId, clientSecret, PrismaValue } from './app.prisma.mock';
+import * as session from 'express-session';
+import * as HBS from 'hbs';
+
+function getParams(url, params) {
+  const res = new RegExp('(?:&|/?)' + params + '=([^&$]+)').exec(url);
+  return res ? res[1] : '';
+}
 
 describe('CoreController (e2e)', () => {
-  let app: INestApplication;
+  let app: NestExpressApplication;
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
@@ -21,6 +27,15 @@ describe('CoreController (e2e)', () => {
 
     app = moduleFixture.createNestApplication<NestExpressApplication>();
     app.useGlobalFilters(new HttpExceptionFilter(app.get(LoggerService)));
+    app.set('view engine', 'hbs');
+    app.engine('hbs', HBS.__express);
+    app.use(
+      session({
+        secret: 'test',
+        resave: false,
+        saveUninitialized: true,
+      }),
+    );
     await app.init();
   });
   describe('/oauth/token (POST) [model=password,refresh_token]', () => {
@@ -252,9 +267,56 @@ describe('CoreController (e2e)', () => {
     });
   });
 
-  describe('/oauth/token (POST) [model=code]', () => {
-    it('test', () => {
-      return expect(true);
+  describe('/oauth/authorize  [model=authorization_code]', () => {
+    it('should be return file ', () => {
+      return request(app.getHttpServer()).get('/oauth/authorize').expect(200);
+    });
+
+    it('授权码验证流程', () => {
+      const baseToken = Buffer.from(`${clientId}:${clientSecret}`).toString(
+        'base64',
+      );
+      return request(app.getHttpServer())
+        .post('/oauth/authorize')
+        .set('Content-Type', 'application/x-www-form-urlencoded')
+        .send({
+          client_id: clientId,
+          response_type: 'code',
+          redirect_uri: 'http://127.0.0.1:3000/call',
+          state: 'test_state',
+          username: 'username',
+          password: 'password',
+        })
+        .expect(302)
+        .then((resp) => {
+          const { location } = resp.header || {};
+          expect(location).toBeDefined();
+          if (location) {
+            const codeVal = getParams(location, 'code');
+            const state = getParams(location, 'state');
+            expect(codeVal).not.toEqual('');
+            expect(state).toEqual('test_state');
+            return request(app.getHttpServer())
+              .post('/oauth/token')
+              .set('Content-Type', 'application/x-www-form-urlencoded')
+              .set('Authorization', `Basic ${baseToken}`)
+              .send(
+                `code=${codeVal}&grant_type=authorization_code&redirect_uri=http://127.0.0.1:3000/call`,
+              )
+              .expect(200)
+              .then((resp) => {
+                const { body } = resp;
+                const { access_token } = body;
+                expect(access_token).toBeDefined();
+                expect(body).toEqual(
+                  expect.objectContaining({
+                    expires_in: 1800,
+                    token_type: 'Bearer',
+                  }),
+                );
+              });
+          }
+        });
     });
   });
 

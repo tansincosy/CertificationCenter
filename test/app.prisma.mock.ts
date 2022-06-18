@@ -1,5 +1,6 @@
 import { OAuthClientDetails } from '@prisma/client';
 let tokenSave = [];
+let oAuthApprovals = [];
 export const clientId = 'test-client-id',
   clientSecret = 'test-client-secret';
 
@@ -12,8 +13,8 @@ export const PrismaValue = {
       return {
         id: clientId,
         clientSecret,
-        authorizedGrantTypes: 'password,refresh_token',
-        webServerRedirectUri: 'http://www.baidu.com?call',
+        authorizedGrantTypes: 'password,refresh_token,authorization_code',
+        webServerRedirectUri: 'http://127.0.0.1:3000/call',
         scope: 'test:read,test:write',
         accessTokenValidity: 1800,
         refreshTokenValidity: 3600,
@@ -60,8 +61,8 @@ export const PrismaValue = {
         OAuthClientDetails: {
           id: clientId,
           clientSecret: clientSecret,
-          authorizedGrantTypes: 'password,refresh_token',
-          webServerRedirectUri: 'http://www.baidu.com?call',
+          authorizedGrantTypes: 'password,refresh_token,authorization_code',
+          webServerRedirectUri: 'http://127.0.0.1:3000/call',
           scope: 'test:read,test:write',
           accessTokenValidity: 1800,
           refreshTokenValidity: 3600,
@@ -78,6 +79,37 @@ export const PrismaValue = {
         );
       }
       return true;
+    },
+  },
+  oAuthApprovals: {
+    create({ data }) {
+      oAuthApprovals.push(data);
+      return {
+        id: 'test-oAuthApprovals-id',
+      };
+    },
+    delete({ where: { code } }) {
+      oAuthApprovals = oAuthApprovals.filter((item) => item.code !== code);
+      return {
+        id: 'test-oAuthApprovals-id',
+      };
+    },
+    findFirst({ where: { code } }) {
+      const oAuthApproval = oAuthApprovals.find((item) => item.code === code);
+      if (oAuthApproval) {
+        oAuthApproval.userId = 'test-user-id';
+        oAuthApproval.OAuthClientDetails = {
+          clientSecret: clientSecret,
+          webServerRedirectUri: 'http://127.0.0.1:3000/call',
+          id: 'test-client-id',
+          authorizedGrantTypes: 'password,refresh_token,authorization_code',
+          accessTokenValidity: 1800,
+          refreshTokenValidity: 3600,
+        };
+        console.log('oAuthApprovals', oAuthApprovals);
+        return oAuthApproval;
+      }
+      return null;
     },
   },
 };
