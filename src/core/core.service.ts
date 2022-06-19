@@ -40,7 +40,7 @@ export class CoreService extends OAuth2Server {
     session: SessionDTO,
   ) {
     const authResult = await this.model.getUser(user.username, user.password);
-    if (!authResult && process.env.APP_ENV !== 'dev') {
+    if (!authResult) {
       this.LOG.error('username or password is wrong');
       return res.render('auth-login', {
         message: '用户名或密码错误',
@@ -66,6 +66,9 @@ export class CoreService extends OAuth2Server {
         webServerRedirectUri: authorize.redirect_uri,
       },
     });
+    if (!clientInfo) {
+      return res.render('auth-404');
+    }
     const { clientName, clientLogo } = toObject<ClientDetail>(
       clientInfo.additionalInformation,
     );

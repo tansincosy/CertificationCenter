@@ -17,14 +17,30 @@
                 <img class="mx-auto h-12 w-auto" src="https://tailwindui.com/img/logos/workflow-mark-indigo-600.svg"
                     alt="Workflow">
                 <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">登录你的账号</h2>
+                {{#if clientName}}
                 <p class="mt-2 text-center text-sm text-gray-600">
-                    <a href="#" class="font-medium text-indigo-600 hover:text-indigo-500"> 使用{{clientName}}
+                    <a href="#" class="font-medium text-indigo-600 hover:text-indigo-500">
+                        使用{{clientName}}
                     </a>
                 </p>
+                {{/if}}
             </div>
             <form class="mt-8 space-y-6" action="/oauth/session?client_id={{clientId}}&redirect_uri={{redirectUrl}}"
                 method="post">
-                {{message}}
+                {{#if message}}
+                <div id="error-tip"
+                    class="flex justify-between bg-red-100 text-gray-600 border border-pink-600 rounded w-full px-3 py-2 sm:text-sm">
+                    {{message}}
+                    <div class="w-5 h-5 cursor-pointer" onclick="closeErrorTip()">
+                        <svg t="1655604865592" class="icon" viewBox="0 0 1024 1024" version="1.1"
+                            xmlns="http://www.w3.org/2000/svg" p-id="2132">
+                            <path class="fill-red-500"
+                                d="M544.448 499.2l284.576-284.576a32 32 0 0 0-45.248-45.248L499.2 453.952 214.624 169.376a32 32 0 0 0-45.248 45.248l284.576 284.576-284.576 284.576a32 32 0 0 0 45.248 45.248l284.576-284.576 284.576 284.576a31.904 31.904 0 0 0 45.248 0 32 32 0 0 0 0-45.248L544.448 499.2z"
+                                p-id="2133"></path>
+                        </svg>
+                    </div>
+                </div>
+                {{/if}}
                 <div class="rounded-md shadow-sm -space-y-px">
                     <div>
                         <label for="username" class="sr-only">用户名:</label>
@@ -51,6 +67,11 @@
             </form>
         </div>
     </div>
+    <script>
+        const closeErrorTip = () => {
+            document.getElementById('error-tip').style.display = 'none'
+        }
+    </script>
 </body>
 
 </html>

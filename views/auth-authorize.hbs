@@ -42,7 +42,7 @@
                     <input id="clientId" type="text" name="client_id" value="{{client_id}}" class="hidden">
                     <input id="redirectUri" type="text" name="redirect_uri" value="{{redirect_uri}}" class="hidden">
                     <input type="text" name="response_type" value="code" class="hidden">
-                    <input type="text" name="state" value="state_tes" class="hidden">
+                    <input type="text" name="state" value="state" class="hidden">
                     <div class="flex items-center justify-end">
                         <input id="approveType" name="autoApprove" type="checkbox"
                             class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
@@ -62,12 +62,19 @@
     </div>
 
     <script>
+        function getParams(url, params) {
+            const res = new RegExp('(?:&|/?)' + params + '=([^&$]+)').exec(url);
+            return res ? res[1] : '';
+        }
+
         window.onload = () => {
             const locationObj = window.location
-            const clientId = locationObj.search.split('&')[0].split('=')[1]
-            const redirectUri = locationObj.search.split('&')[1].split('=')[1]
+            const clientId = getParams(locationObj.search, 'client_id');
+            const redirectUri = getParams(locationObj.search, 'redirect_uri');
+            const state = getParams(locationObj.search, 'state');
             document.getElementById('clientId').value = clientId
             document.getElementById('redirectUri').value = redirectUri
+            document.getElementById('state').value = state
         }
     </script>
 </body>
