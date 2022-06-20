@@ -25,7 +25,7 @@ build_base_pack() {
 }
 
 build_bundle_pack() {
-
+    # 判断在操作系统
     log "通过ncc将多个文件合并为一个node-js文件"
     npm run build:bundle
 }
@@ -47,7 +47,15 @@ mv_prisma_node_up_dir() {
 
 tar_bundle_pack() {
     log "将其压缩到一个文件中"
-    tar -zcvf bundle.tar.gz ./build/*
+    # 从package.json中获取版本号
+    version=$(node -e "console.log(require('./package.json').version)")
+    # 从package.json中获取名字
+    name=$(node -e "console.log(require('./package.json').name)")
+    # 删除package.json文件
+    rm -rf ./build/package.json
+    # 压缩文件名
+    bundle_name="${name}.${version}.tar.gz"
+    tar -zcvf "${bundle_name}" ./build/*
 }
 
 build_log() {
@@ -55,6 +63,7 @@ build_log() {
     version: 1.0.0
     date: $(date '+%Y-%m-%d %H:%M:%S')
    " >>./build/build.log
+    cp package.json ./build/package.json
 }
 
 pre_build
