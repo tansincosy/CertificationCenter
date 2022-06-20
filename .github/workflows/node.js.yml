@@ -28,12 +28,9 @@ jobs:
     - run: yarn
     - name: Test the project for e2e
       run: yarn run test:e2e
-  build: 
-    needs: [test]
-    runs-on: ubuntu-latest
-    steps:
     - name: Build the project to single file
-      run: sh ./scripts/build.sh
+      run: | 
+        sh ./scripts/build.sh
     - name: Bump version and push tag
       id: tag_version
       uses: mathieudutour/github-tag-action@v6.0
