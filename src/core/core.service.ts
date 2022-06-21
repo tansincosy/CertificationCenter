@@ -169,7 +169,7 @@ export class CoreService extends OAuth2Server {
       },
     );
     const queryBody = request.body;
-    let redirectUrl = `https://${token.redirectUri}?code=${token.authorizationCode}`;
+    let redirectUrl = `${token.redirectUri}?code=${token.authorizationCode}`;
     if (queryBody.state) {
       redirectUrl = redirectUrl += `&state=${queryBody.state}`;
     }
