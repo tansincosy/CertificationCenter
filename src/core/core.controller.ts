@@ -11,7 +11,7 @@ import {
 import { CoreService } from './core.service';
 import { Request, Response } from 'express';
 import { AuthBody, Authorize, QueryParam, SessionDTO, User } from './core.type';
-@Controller('oauth')
+@Controller()
 export class CoreController {
   constructor(private readonly coreService: CoreService) {}
 

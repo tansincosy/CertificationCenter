@@ -38,7 +38,7 @@
                         将通过 {{user.username}} 访问数据
                     </a>
                 </p>
-                <form action="/oauth/authorize" method="post" class="mt-8 space-y-6">
+                <form action="/authorize" method="post" class="mt-8 space-y-6">
                     <input id="clientId" type="text" name="client_id" value="{{client_id}}" class="hidden">
                     <input id="redirectUri" type="text" name="redirect_uri" value="{{redirect_uri}}" class="hidden">
                     <input type="text" name="response_type" value="code" class="hidden">

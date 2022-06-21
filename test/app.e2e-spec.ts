@@ -38,21 +38,18 @@ describe('CoreController (e2e)', () => {
     );
     await app.init();
   });
-  describe('/oauth/token (POST) [model=password,refresh_token]', () => {
+  describe('/token (POST) [model=password,refresh_token]', () => {
     it('设置 application/x-www-form-urlencoded 请求头', () => {
-      return request(app.getHttpServer())
-        .post('/oauth/token')
-        .expect(400)
-        .expect({
-          error_code: 400,
-          error_message:
-            'Invalid request: content must be application/x-www-form-urlencoded',
-        });
+      return request(app.getHttpServer()).post('/token').expect(400).expect({
+        error_code: 400,
+        error_message:
+          'Invalid request: content must be application/x-www-form-urlencoded',
+      });
     });
 
     it('没有设置 Authorization参数，非法客户端', async () => {
       return request(app.getHttpServer())
-        .post('/oauth/token')
+        .post('/token')
         .set('Content-Type', 'application/x-www-form-urlencoded')
         .expect(400)
         .expect({
@@ -63,7 +60,7 @@ describe('CoreController (e2e)', () => {
 
     it('设置 Authorization非法客户端', async () => {
       return request(app.getHttpServer())
-        .post('/oauth/token')
+        .post('/token')
         .set('Content-Type', 'application/x-www-form-urlencoded')
         .set(
           'Authorization',
@@ -81,7 +78,7 @@ describe('CoreController (e2e)', () => {
         'base64',
       );
       return request(app.getHttpServer())
-        .post('/oauth/token')
+        .post('/token')
         .set('Content-Type', 'application/x-www-form-urlencoded')
         .set('Authorization', `Basic ${baseToken}`)
         .expect(400)
@@ -96,7 +93,7 @@ describe('CoreController (e2e)', () => {
         'base64',
       );
       return request(app.getHttpServer())
-        .post('/oauth/token')
+        .post('/token')
         .set('Content-Type', 'application/x-www-form-urlencoded')
         .set('Authorization', `Basic ${baseToken}`)
         .send('grant_type=password')
@@ -112,7 +109,7 @@ describe('CoreController (e2e)', () => {
         'base64',
       );
       return request(app.getHttpServer())
-        .post('/oauth/token')
+        .post('/token')
         .set('Content-Type', 'application/x-www-form-urlencoded')
         .set('Authorization', `Basic ${baseToken}`)
         .send('username=username&password=password&grant_type=password1')
@@ -128,7 +125,7 @@ describe('CoreController (e2e)', () => {
         'base64',
       );
       return request(app.getHttpServer())
-        .post('/oauth/token')
+        .post('/token')
         .set('Content-Type', 'application/x-www-form-urlencoded')
         .set('Authorization', `Basic ${baseToken}`)
         .send('username=username1&password=password&grant_type=password')
@@ -144,7 +141,7 @@ describe('CoreController (e2e)', () => {
         'base64',
       );
       return request(app.getHttpServer())
-        .post('/oauth/token')
+        .post('/token')
         .set('Content-Type', 'application/x-www-form-urlencoded')
         .set('Authorization', `Basic ${baseToken}`)
         .send('username=username&password=password&grant_type=password')
@@ -165,7 +162,7 @@ describe('CoreController (e2e)', () => {
         'base64',
       );
       return request(app.getHttpServer())
-        .post('/oauth/token')
+        .post('/token')
         .set('Content-Type', 'application/x-www-form-urlencoded')
         .set('Authorization', `Basic ${baseToken}`)
         .send('username=username&password=password&grant_type=password')
@@ -174,7 +171,7 @@ describe('CoreController (e2e)', () => {
           const { body } = resp;
           const { refresh_token } = body;
           return request(app.getHttpServer())
-            .post('/oauth/token')
+            .post('/token')
             .set('Content-Type', 'application/x-www-form-urlencoded')
             .set('Authorization', `Basic ${baseToken}`)
             .send(`refresh_token=${refresh_token}&grant_type=refresh_token`)
@@ -190,7 +187,7 @@ describe('CoreController (e2e)', () => {
                 }),
               );
               return request(app.getHttpServer())
-                .post('/oauth/token')
+                .post('/token')
                 .set('Content-Type', 'application/x-www-form-urlencoded')
                 .set('Authorization', `Basic ${baseToken}`)
                 .send(
@@ -216,7 +213,7 @@ describe('CoreController (e2e)', () => {
         'base64',
       );
       return request(app.getHttpServer())
-        .post('/oauth/token')
+        .post('/token')
         .set('Content-Type', 'application/x-www-form-urlencoded')
         .set('Authorization', `Basic ${baseToken}`)
         .send('username=username&password=password&grant_type=password')
@@ -225,7 +222,7 @@ describe('CoreController (e2e)', () => {
           const { body } = resp;
           const { access_token } = body;
           return request(app.getHttpServer())
-            .post('/oauth/authenticate')
+            .post('/authenticate')
             .set('Content-Type', 'application/json')
             .send({
               token: access_token,
@@ -243,7 +240,7 @@ describe('CoreController (e2e)', () => {
         'base64',
       );
       return request(app.getHttpServer())
-        .post('/oauth/token')
+        .post('/token')
         .set('Content-Type', 'application/x-www-form-urlencoded')
         .set('Authorization', `Basic ${baseToken}`)
         .send('username=username&password=password&grant_type=password')
@@ -252,7 +249,7 @@ describe('CoreController (e2e)', () => {
           const { body } = resp;
           const { access_token } = body;
           return request(app.getHttpServer())
-            .post('/oauth/authenticate')
+            .post('/authenticate')
             .set('Content-Type', 'application/json')
             .send({
               token: access_token,
@@ -267,9 +264,9 @@ describe('CoreController (e2e)', () => {
     });
   });
 
-  describe('/oauth/authorize  [model=authorization_code]', () => {
+  describe('/authorize  [model=authorization_code]', () => {
     it('should be return file ', () => {
-      return request(app.getHttpServer()).get('/oauth/authorize').expect(200);
+      return request(app.getHttpServer()).get('/authorize').expect(200);
     });
 
     it('授权码验证流程', () => {
@@ -277,7 +274,7 @@ describe('CoreController (e2e)', () => {
         'base64',
       );
       return request(app.getHttpServer())
-        .post('/oauth/authorize')
+        .post('/authorize')
         .set('Content-Type', 'application/x-www-form-urlencoded')
         .send({
           client_id: clientId,
@@ -297,7 +294,7 @@ describe('CoreController (e2e)', () => {
             expect(codeVal).not.toEqual('');
             expect(state).toEqual('test_state');
             return request(app.getHttpServer())
-              .post('/oauth/token')
+              .post('/token')
               .set('Content-Type', 'application/x-www-form-urlencoded')
               .set('Authorization', `Basic ${baseToken}`)
               .send(
