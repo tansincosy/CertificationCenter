@@ -1,6 +1,9 @@
 import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
+/**
+ * TODO: 添加初始用户名和密码，通过加密工具脚本设置？
+ */
 async function main() {
   await prisma.oAuthClientDetails.create({
     data: {

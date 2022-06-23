@@ -106,7 +106,6 @@ export const PrismaValue = {
           accessTokenValidity: 1800,
           refreshTokenValidity: 3600,
         };
-        console.log('oAuthApprovals', oAuthApprovals);
         return oAuthApproval;
       }
       return null;

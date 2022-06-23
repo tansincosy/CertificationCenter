@@ -1,13 +1,13 @@
-import { PrismaService } from '@/common/database/prisma.service';
 import { Test, TestingModule } from '@nestjs/testing';
 import * as request from 'supertest';
 import { AppModule } from './../src/app.module';
 import { HttpExceptionFilter } from '@/filter/error.filter';
-import { LoggerService } from '@/common/log4j/log4j.service';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { clientId, clientSecret, PrismaValue } from './app.prisma.mock';
 import * as session from 'express-session';
 import * as HBS from 'hbs';
+import { PrismaService } from '@/db/prisma.service';
+import { LoggerService } from '@/log4j/log4j.service';
 
 function getParams(url, params) {
   const res = new RegExp('(?:&|/?)' + params + '=([^&$]+)').exec(url);

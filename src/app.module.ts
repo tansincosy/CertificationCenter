@@ -1,10 +1,10 @@
 import { CacheModule, Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { DataBaseModule } from './common/database/database.module';
-import { LoggerModule } from './common/log4j/log4j.module';
 import * as store from 'cache-manager-redis-store';
-import { CoreModule } from './core/core.module';
+import { DataBaseModule } from './db/database.module';
+import { LoggerModule } from './log4j/log4j.module';
+import { AppAuthModelService } from './app.service.model';
 
 const cacheRedisStore = () => {
   if (
@@ -28,9 +28,8 @@ const cacheRedisStore = () => {
     DataBaseModule,
     LoggerModule,
     CacheModule.register(cacheRedisStore()),
-    CoreModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, AppAuthModelService],
 })
 export class AppModule {}

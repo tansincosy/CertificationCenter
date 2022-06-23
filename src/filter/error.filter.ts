@@ -1,4 +1,4 @@
-import { Logger, LoggerService } from '@/common/log4j/log4j.service';
+import { Logger, LoggerService } from '@/log4j/log4j.service';
 import {
   ExceptionFilter,
   Catch,

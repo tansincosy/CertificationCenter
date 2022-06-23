@@ -1,4 +1,3 @@
-import { Logger, LoggerService } from '@/common/log4j/log4j.service';
 import {
   AuthorizationCode,
   AuthorizationCodeModel,
@@ -10,12 +9,13 @@ import {
   Token,
   User,
 } from 'oauth2-server';
-import { PrismaService } from '@/common/database/prisma.service';
 import { decrypt, md5, secretMask, toJSON, toObject } from '@/util/help.util';
 import { TOKEN, USER } from '@/constant/token.constant';
 import { Injectable } from '@nestjs/common';
+import { LoggerService, Logger } from './log4j/log4j.service';
+import { PrismaService } from './db/prisma.service';
 @Injectable()
-export class CoreAuthModelService
+export class AppAuthModelService
   implements PasswordModel, RefreshTokenModel, AuthorizationCodeModel
 {
   private LOG: Logger;
@@ -23,7 +23,7 @@ export class CoreAuthModelService
     private readonly logService: LoggerService,
     private readonly prismaService: PrismaService,
   ) {
-    this.LOG = this.logService.getLogger(CoreAuthModelService.name);
+    this.LOG = this.logService.getLogger(AppAuthModelService.name);
   }
 
   async getAuthorizationCode(

@@ -3,12 +3,12 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import * as session from 'express-session';
 import { join } from 'path';
 import { AppModule } from './app.module';
-import { getConfig } from './common/config/log4js.config';
-import { LoggerService } from './common/log4j/log4j.service';
-import { SESSION } from './constant/token.constant';
-import { HttpExceptionFilter } from './filter/error.filter';
 import { Log } from './util/log.util';
 import * as HBS from 'hbs';
+import { getConfig } from './config/log4js.config';
+import { HttpExceptionFilter } from './filter/error.filter';
+import { LoggerService } from './log4j/log4j.service';
+import { SESSION } from './constant/token.constant';
 
 function setHBSEngine(app) {
   app.set('view engine', 'hbs');

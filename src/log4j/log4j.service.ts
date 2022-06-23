@@ -1,6 +1,6 @@
+import { getConfig } from '@/config/log4js.config';
 import { Log } from '@/util/log.util';
 import { Injectable } from '@nestjs/common';
-import { getConfig } from '../config/log4js.config';
 
 @Injectable()
 export class LoggerService extends Log {
