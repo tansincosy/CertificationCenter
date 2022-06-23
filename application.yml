@@ -1,0 +1,54 @@
+# 整体配置，如果不配置，将会采用默认配置
+app:
+  # 版本
+  version:
+  # 端口
+  port: 3000
+  # app 所有数据目录
+  data:
+    path: app_data
+# 权限相关
+auth:
+  support:
+   # 支持锁定类型
+    lock:
+      user: false
+      client: false
+# V2 功能，暂时不支持 grpc 功能
+grpc:
+  support: false
+
+# 日志模块
+log:
+  level: debug
+  path: logs
+
+# 所有缓存,默认走本地缓存
+cache:
+  redis:
+    host: 127.0.0.1
+    port: 6379
+    auth: ''
+# 数据由于采用的是prisma，所以加载时，需要解析此配置，将其加载到环境变量中
+# 如果是docker部署，可以布局到docker 环境变量中，具体另说后期将给出文档
+database:
+  mysql:
+    host: 127.0.0.1
+    port: 3306
+    name: oauth
+    user: root
+    password: 123456
+# 加密设置
+encrypted:
+  token:
+    secure:
+    access:
+    refresh:
+  session:
+    secure:
+  app:
+    iv:
+    key:
+    
+
+  
