@@ -5,17 +5,18 @@ import * as store from 'cache-manager-redis-store';
 import { DataBaseModule } from './db/database.module';
 import { LoggerModule } from './log4j/log4j.module';
 import { AppAuthModelService } from './app.service.model';
+import { ConfigModule } from '@nestjs/config';
+import Configuration from './config/app.config';
 
 const cacheRedisStore = () => {
-  if (
-    process.env.NODE_ENV !== 'test' &&
-    process.env.REDIS_STORE_HOST &&
-    process.env.REDIS_STORE_PORT
-  ) {
+  const appConfig = Configuration();
+  const {
+    cache: { redis },
+  } = appConfig;
+  if (process.env.NODE_ENV !== 'test' && redis) {
     return {
       store: store,
-      host: process.env.REDIS_STORE_HOST,
-      port: parseInt(process.env.REDIS_STORE_PORT, 10),
+      ...redis,
       isGlobal: true,
     };
   }
@@ -26,6 +27,9 @@ const cacheRedisStore = () => {
 @Module({
   imports: [
     DataBaseModule,
+    ConfigModule.forRoot({
+      load: [Configuration],
+    }),
     LoggerModule,
     CacheModule.register(cacheRedisStore()),
   ],

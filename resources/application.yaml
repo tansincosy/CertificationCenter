@@ -21,8 +21,6 @@ grpc:
 # 日志模块
 log:
   level: debug
-  path: logs
-
 # 所有缓存,默认走本地缓存
 cache:
   redis:
@@ -45,7 +43,9 @@ encrypted:
     access:
     refresh:
   session:
-    secure:
+    secret: 9m1aIGWJZnQxGfQJC4bKvwFoCAFIdgwH
+    resave: false
+    saveUninitialized: false
   app:
     iv:
     key:

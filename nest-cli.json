@@ -6,12 +6,16 @@
     "watchAssets": true,
     "assets": [
       {
-        "include": "../views/*.hbs",
-        "outDir": "./dist/src/views"
+        "include": "../resources/views/*.hbs",
+        "outDir": "./dist/resources"
       },
       {
-        "include": "../public/*.css",
-        "outDir": "./dist/src/public"
+        "include": "../resources/public/*.css",
+        "outDir": "./dist/resources"
+      },
+      {
+        "include": "../resources/*.yaml",
+        "outDir": "./dist/resources"
       }
     ]
   }
