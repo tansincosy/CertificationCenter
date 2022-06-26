@@ -4,6 +4,7 @@ import {
   OnModuleDestroy,
   INestApplication,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Prisma, PrismaClient } from '@prisma/client';
 import { Logger, LoggerService } from '../log4j/log4j.service';
 import { PrismaMiddleware } from './prisma.middleware';
@@ -19,6 +20,7 @@ export class PrismaService
   constructor(
     private readonly logger: LoggerService,
     private readonly middleware: PrismaMiddleware,
+    private readonly configService: ConfigService,
   ) {
     super({
       log: [{ emit: 'event', level: 'query' }],
@@ -26,6 +28,7 @@ export class PrismaService
     });
     this.log = this.logger.getLogger(PrismaService.name);
     this.init();
+    this.setEnvDataBaseUrl();
   }
 
   async init() {
@@ -65,6 +68,14 @@ export class PrismaService
   }
   async onModuleInit() {
     await this.$connect();
+  }
+
+  setEnvDataBaseUrl() {
+    const database = this.configService.get('database');
+    if (database.mysql) {
+      const mysqlUrl = `mysql://${database.mysql.user}:${database.mysql.password}@${database.mysql.host}:${database.mysql.port}/${database.mysql.db}`;
+      process.env.DATABASE_URL = mysqlUrl;
+    }
   }
 
   async onModuleDestroy() {

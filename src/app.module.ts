@@ -29,6 +29,7 @@ const cacheRedisStore = () => {
     DataBaseModule,
     ConfigModule.forRoot({
       load: [Configuration],
+      cache: true,
     }),
     LoggerModule,
     CacheModule.register(cacheRedisStore()),

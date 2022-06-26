@@ -10,10 +10,11 @@ import {
   User,
 } from 'oauth2-server';
 import { decrypt, md5, secretMask, toJSON, toObject } from '@/util/help.util';
-import { TOKEN, USER } from '@/constant/token.constant';
+import { USER } from '@/constant/token.constant';
 import { Injectable } from '@nestjs/common';
 import { LoggerService, Logger } from './log4j/log4j.service';
 import { PrismaService } from './db/prisma.service';
+import { ConfigService } from '@nestjs/config';
 @Injectable()
 export class AppAuthModelService
   implements PasswordModel, RefreshTokenModel, AuthorizationCodeModel
@@ -22,6 +23,7 @@ export class AppAuthModelService
   constructor(
     private readonly logService: LoggerService,
     private readonly prismaService: PrismaService,
+    private readonly configService: ConfigService,
   ) {
     this.LOG = this.logService.getLogger(AppAuthModelService.name);
   }
@@ -202,6 +204,10 @@ export class AppAuthModelService
       },
     });
 
+    const isSupportUserLocked = this.configService.get(
+      'auth.support.lock.user',
+    );
+
     if (!user) {
       this.LOG.warn('[getUser] user is not found!');
       return false;
@@ -210,16 +216,17 @@ export class AppAuthModelService
       this.LOG.warn('[getUser] user is disabled!');
       return false;
     }
-    if (user.isLocked === USER.LOCKED) {
+    if (isSupportUserLocked && user.isLocked === USER.LOCKED) {
       this.LOG.warn('[getUser] user is locked!');
       return false;
     }
-    const cryptoConfigKey = process.env.TOKEN_SECRET || TOKEN.SECRET;
+
+    const cryptoConfigKey = this.configService.get('encrypted.token.secret');
     const decryptPassword =
       process.env.NODE_ENV === 'test'
         ? user.password
         : decrypt(cryptoConfigKey, user.password);
-    if (process.env.APP_ENV === 'prod' && user.password !== decryptPassword) {
+    if (user.password !== decryptPassword) {
       this.LOG.warn('[getUser] password is not correct!');
       return false;
     }
@@ -256,6 +263,13 @@ export class AppAuthModelService
     if (!client || (clientSecret && client.clientSecret !== clientSecret)) {
       this.LOG.warn('client is not found! or client secret is valid');
       return false;
+    }
+
+    const isSupportClientLocked = this.configService.get(
+      'auth.support.lock.client',
+    );
+    if (isSupportClientLocked) {
+      //编写客户端锁定
     }
 
     return {
