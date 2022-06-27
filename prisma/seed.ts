@@ -15,7 +15,7 @@ async function main() {
     data: {
       username: 'admin',
       password:
-        'ade07a952dc602a3514ebeb83ec8aa36:adfa025aaa1e4b1ded169dda56a9df95',
+        '1b91866a777792059c30228523fe59bc2a6f752e3d0179e7d8d8c9147ed58d826a0cf9649ae1672e0af5d3ec318550a3a60bcda086f74ff4d3257ce57bffa178',
     },
   });
 }

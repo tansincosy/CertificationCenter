@@ -10,7 +10,13 @@ import {
   Token,
   User,
 } from 'oauth2-server';
-import { decrypt, md5, secretMask, toJSON, toObject } from '@/util/help.util';
+import {
+  encryptWithPbkdf2,
+  md5,
+  secretMask,
+  toJSON,
+  toObject,
+} from '@/util/help.util';
 import { USER } from '@/constant/token.constant';
 import { Injectable } from '@nestjs/common';
 import { LoggerService, Logger } from './log4j/log4j.service';
@@ -37,7 +43,7 @@ export class AppAuthModelService
     //由于客户端没有用户名,传值clientID
     this.LOG.debug('[getUserFromClient] Client =%s', client);
     return {
-      username: client.id,
+      username: 'client_' + client.id,
       authType: 'client',
     };
   }
@@ -218,13 +224,6 @@ export class AppAuthModelService
       },
     });
 
-    if (!user) {
-      return {
-        id: '222',
-        username: 'username',
-      };
-    }
-
     const isSupportUserLocked = this.configService.get(
       'auth.support.lock.user',
     );
@@ -243,11 +242,11 @@ export class AppAuthModelService
     }
 
     const cryptoConfigKey = this.configService.get('encrypted.token.secret');
-    const decryptPassword =
+    const encryptPassword =
       process.env.NODE_ENV === 'test'
         ? user.password
-        : decrypt(cryptoConfigKey, user.password);
-    if (user.password !== decryptPassword) {
+        : encryptWithPbkdf2(cryptoConfigKey, user.password);
+    if (user.password !== encryptPassword) {
       this.LOG.warn('[getUser] password is not correct!');
       return false;
     }

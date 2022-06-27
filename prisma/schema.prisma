@@ -54,17 +54,6 @@ model OAuthTerminal {
   @@map("oauth_terminal")
 }
 
-model OAuthClientToken {
-  id               String   @id @default(cuid())
-  tokenId          String   @default("") @map("token_id")
-  token            String   @default("") @map("token")
-  authenticationId String   @default("") @map("authentication_id")
-  createdAt        DateTime @default(now()) @map("created_at")
-  updatedAt        DateTime @default(now()) @map("updated_at")
-
-  @@map("oauth_client_token")
-}
-
 model OAuthToken {
   id String @id @default(cuid())
 
@@ -133,9 +122,10 @@ model User {
   enable    Int              @default(1) @map("enable")
   updatedAt DateTime         @default(now()) @map("updated_at")
   createdAt DateTime         @default(now()) @map("created_at")
-  isLocked  Int?             @default(1) @map("is_locked")
+  isLocked  Int?             @default(0) @map("is_locked")
   email     String?          @unique @default("")
   terminals UserOnTerminal[]
+  emailCode String?          @map("email_code") @db.Text
 
   @@map("oauth_user")
 }

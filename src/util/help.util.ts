@@ -4,7 +4,6 @@ import {
   createHash,
   pbkdf2,
   randomBytes,
-  randomUUID,
 } from 'crypto';
 import { isEmpty } from 'lodash';
 const algorithm = 'aes-256-cbc';
@@ -106,18 +105,16 @@ export function md5(defaultStr = '', salt = ''): string {
  * @param userPassword
  * @returns
  */
-export function encryptedWithPbkdf2(userPassword: string): Promise<string> {
-  //盐值随机
-  const salt = randomUUID();
-  let primaryDriverKey = '';
+export function encryptWithPbkdf2(
+  encryptKey: string,
+  encryptVal: string,
+): Promise<string> {
   return new Promise((resolve, reject) => {
-    pbkdf2(userPassword, salt, 1000, 64, 'sha512', (err, derivedKey) => {
+    pbkdf2(encryptVal, encryptKey, 1000, 64, 'sha512', (err, derivedKey) => {
       if (err) {
-        primaryDriverKey = '';
-        reject(primaryDriverKey);
+        reject('');
       } else {
-        primaryDriverKey = derivedKey.toString('hex');
-        resolve(primaryDriverKey);
+        resolve(derivedKey.toString('hex'));
       }
     });
   });
