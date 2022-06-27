@@ -22,6 +22,7 @@ model OAuthClientDetails {
   refreshTokenValidity  Int    @default(604800) @map("refresh_token_validity")
   //这是一个预留的字段,在Oauth的流程中没有实际的使用,可选,但若设置值,必须是JSON格式的数据
   additionalInformation String @default("") @map("additional_information")
+  isLocked              Int    @default(0) @map("is_locked")
 
   //设置用户是否自动Approval操作, 默认值为 'false', 可选值包括 'true','false', 'read','write'.
   //该字段只适用于grant_type="authorization_code"的情况,当用户登录成功后,若该值为'true'或支持的scope值,则会跳过用户Approve的页面, 直接授权.
@@ -32,8 +33,25 @@ model OAuthClientDetails {
 
   OAuthToken OAuthToken[]
 
+  oAuthTerminals OAuthTerminal[]
+
   OAuthApprovals OAuthApprovals[]
   @@map("oauth_client_details")
+}
+
+model OAuthTerminal {
+  id                   String              @id @default(cuid())
+  isLocked             Int?                @default(0) @map("is_locked") @db.TinyInt
+  name                 String?             @default("")
+  type                 String?             @default("")
+  engine               String?             @default("")
+  os                   String?             @default("")
+  isOnline             Int?                @default(0) @map("is_online") @db.TinyInt
+  OAuthClientDetails   OAuthClientDetails? @relation(fields: [oAuthClientDetailsId], references: [id])
+  oAuthClientDetailsId String?             @map("oAuth_client_details_Id")
+  users                UserOnTerminal[]
+
+  @@map("oauth_terminal")
 }
 
 model OAuthClientToken {
@@ -109,15 +127,28 @@ model clientDetails {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  username  String   @unique @default("") @map("username")
-  password  String   @default("") @map("password")
-  enable    Int      @default(1) @map("enable")
-  updatedAt DateTime @default(now()) @map("updated_at")
-  createdAt DateTime @default(now()) @map("created_at")
-  isLocked  Int?     @default(1) @map("is_locked")
-  email     String?  @unique @default("")
-
+  id        String           @id @default(cuid())
+  username  String           @unique @default("") @map("username")
+  password  String           @default("") @map("password")
+  enable    Int              @default(1) @map("enable")
+  updatedAt DateTime         @default(now()) @map("updated_at")
+  createdAt DateTime         @default(now()) @map("created_at")
+  isLocked  Int?             @default(1) @map("is_locked")
+  email     String?          @unique @default("")
+  terminals UserOnTerminal[]
 
   @@map("oauth_user")
+}
+
+model UserOnTerminal {
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @default(now()) @map("updated_at")
+  userId     String   @map("user_id")
+  terminalId String   @map("terminal_id")
+
+  User          User          @relation(fields: [userId], references: [id])
+  OAuthTerminal OAuthTerminal @relation(fields: [terminalId], references: [id])
+
+  @@id([userId, terminalId])
+  @@map("oauth_link_user_on_terminal")
 }

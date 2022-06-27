@@ -2,6 +2,7 @@ import {
   AuthorizationCode,
   AuthorizationCodeModel,
   Client,
+  ClientCredentialsModel,
   Falsey,
   PasswordModel,
   RefreshToken,
@@ -17,7 +18,11 @@ import { PrismaService } from './db/prisma.service';
 import { ConfigService } from '@nestjs/config';
 @Injectable()
 export class AppAuthModelService
-  implements PasswordModel, RefreshTokenModel, AuthorizationCodeModel
+  implements
+    PasswordModel,
+    RefreshTokenModel,
+    AuthorizationCodeModel,
+    ClientCredentialsModel
 {
   private LOG: Logger;
   constructor(
@@ -26,6 +31,15 @@ export class AppAuthModelService
     private readonly configService: ConfigService,
   ) {
     this.LOG = this.logService.getLogger(AppAuthModelService.name);
+  }
+
+  async getUserFromClient(client: Client): Promise<User | Falsey> {
+    //由于客户端没有用户名,传值clientID
+    this.LOG.debug('[getUserFromClient] Client =%s', client);
+    return {
+      username: client.id,
+      authType: 'client',
+    };
   }
 
   async getAuthorizationCode(
@@ -204,6 +218,13 @@ export class AppAuthModelService
       },
     });
 
+    if (!user) {
+      return {
+        id: '222',
+        username: 'username',
+      };
+    }
+
     const isSupportUserLocked = this.configService.get(
       'auth.support.lock.user',
     );
@@ -268,8 +289,10 @@ export class AppAuthModelService
     const isSupportClientLocked = this.configService.get(
       'auth.support.lock.client',
     );
-    if (isSupportClientLocked) {
+    if (isSupportClientLocked && client.isLocked) {
       //编写客户端锁定
+      this.LOG.warn('client is locked');
+      return false;
     }
 
     return {
@@ -300,7 +323,7 @@ export class AppAuthModelService
     //获取grants，判断是够是够需要refresh_token
     const grants = client.grants;
     let isNeedRefreshToken = false;
-    this.LOG.debug('grants', grants);
+    this.LOG.debug('token=%s grants = %s', token, grants);
     if (grants.includes('refresh_token')) {
       this.LOG.info('[saveToken] current client grants contain refresh_token');
       isNeedRefreshToken = true;
@@ -314,7 +337,10 @@ export class AppAuthModelService
         clientId: client.id,
         authentication: '',
         tokenId: token.accessToken,
-        refreshToken: isNeedRefreshToken ? token.refreshToken : '',
+        refreshToken:
+          isNeedRefreshToken && user.authType !== 'client'
+            ? token.refreshToken
+            : '',
         token: toJSON(token),
         //根据当前的username、client_id与scope通过MD5加密生成该字段的值
         authenticationId: md5(
